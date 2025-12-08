@@ -46,13 +46,13 @@ class SensorBot(commands.Bot):
         
         if guild_id:
             guild = discord.Object(id=int(guild_id))
-            print(f"🔄 正在同步 Guild Commands (Guild ID: {guild_id})...")
+            print(f"[SYNC] Syncing Guild Commands (Guild ID: {guild_id})...")
             self.tree.copy_global_to(guild=guild)
             await self.tree.sync(guild=guild)
-            print(f"✅ Guild Commands 同步完成！")
+            print(f"[OK] Guild Commands synced!")
         else:
-            print("⚠️  未設定 DISCORD_GUILD_ID，跳過指令同步")
-            print("   提示：設定 DISCORD_GUILD_ID 以啟用 Guild Commands（立即生效）")
+            print("[WARN] DISCORD_GUILD_ID not set, skipping command sync")
+            print("       Tip: Set DISCORD_GUILD_ID to enable Guild Commands (instant effect)")
     
     def add_commands(self):
         """註冊所有指令"""
@@ -319,8 +319,8 @@ class SensorBot(commands.Bot):
     
     async def on_ready(self):
         """Bot 啟動完成"""
-        print(f"🤖 Discord Bot 已上線: {self.user.name}")
-        print(f"📝 指令前綴: {BOT_COMMAND_PREFIX}")
+        print(f"[BOT] Discord Bot online: {self.user.name}")
+        print(f"[INFO] Command prefix: {BOT_COMMAND_PREFIX}")
     
     def update_last_reading(self, reading: dict):
         """更新最後一筆讀數（供外部呼叫）"""
@@ -330,7 +330,7 @@ class SensorBot(commands.Bot):
 def run_bot():
     """執行 Discord Bot"""
     if DISCORD_BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
-        print("⚠️ 請先在 config.py 設定 DISCORD_BOT_TOKEN")
+        print("[WARN] Please set DISCORD_BOT_TOKEN in config.py")
         return
     
     bot = SensorBot()
