@@ -44,11 +44,11 @@ DATABASE_PATH = os.getenv("DATABASE_PATH", "sensor_data.db")
 
 # ========== Web 伺服器設定 ==========
 
-# Web 伺服器主機
-WEB_HOST = "127.0.0.1"
+# Web 伺服器主機（本地: 127.0.0.1 / 雲端: 0.0.0.0）
+WEB_HOST = os.getenv("WEB_HOST", "127.0.0.1")
 
-# Web 伺服器埠號
-WEB_PORT = 5000
+# Web 伺服器埠號（本地: 5000 / Render: $PORT）
+WEB_PORT = int(os.getenv("WEB_PORT", "5000"))
 
 # ========== 監測設定 ==========
 
