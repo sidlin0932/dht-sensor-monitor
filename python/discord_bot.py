@@ -21,6 +21,7 @@ import database as db
 class SensorBot(commands.Bot):
     """感測器監控 Discord Bot"""
     
+
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
@@ -36,25 +37,31 @@ class SensorBot(commands.Bot):
         # 註冊指令
         self.add_commands()
     
+    async def setup_hook(self):
+        """Bot 啟動時的鉤子，用於同步指令"""
+        print("🔄 正在同步 Slash Commands...")
+        await self.tree.sync()
+        print("✅ Slash Commands 同步完成！")
+    
     def add_commands(self):
         """註冊所有指令"""
         
-        @self.command(name='help', aliases=['h', '幫助'])
+        @self.hybrid_command(name='help', aliases=['h', '幫助'], description="顯示幫助訊息")
         async def help_command(ctx):
             """顯示幫助訊息"""
             embed = discord.Embed(
                 title="🤖 DHT 感測器 Bot 指令",
-                description="以下是可用的指令列表：",
+                description="支援 **Slash Command (/)** 與 **前綴指令 (!)**",
                 color=0x00BFFF
             )
             
             commands_list = [
-                (f"{BOT_COMMAND_PREFIX}now", "查詢目前溫濕度"),
-                (f"{BOT_COMMAND_PREFIX}history [小時數]", "查詢過去 N 小時數據（預設 24）"),
-                (f"{BOT_COMMAND_PREFIX}stats [小時數]", "查詢統計資料（預設 24）"),
-                (f"{BOT_COMMAND_PREFIX}chart [小時數]", "生成歷史圖表（預設 6）"),
-                (f"{BOT_COMMAND_PREFIX}status", "查詢系統狀態"),
-                (f"{BOT_COMMAND_PREFIX}help", "顯示此幫助訊息"),
+                (f"/now 或 {BOT_COMMAND_PREFIX}now", "查詢目前溫濕度"),
+                (f"/history 或 {BOT_COMMAND_PREFIX}history [hours]", "查詢過去 N 小時數據"),
+                (f"/stats 或 {BOT_COMMAND_PREFIX}stats [hours]", "查詢統計資料"),
+                (f"/chart 或 {BOT_COMMAND_PREFIX}chart [hours]", "生成歷史圖表"),
+                (f"/status 或 {BOT_COMMAND_PREFIX}status", "查詢系統狀態"),
+                (f"/help 或 {BOT_COMMAND_PREFIX}help", "顯示此幫助訊息"),
             ]
             
             for cmd, desc in commands_list:
@@ -63,9 +70,13 @@ class SensorBot(commands.Bot):
             embed.set_footer(text="生物機電工程概論 期末專題")
             await ctx.send(embed=embed)
         
-        @self.command(name='now', aliases=['n', '現在', '目前'])
+        @self.hybrid_command(name='now', aliases=['n', '現在', '目前'], description="查詢目前溫濕度")
         async def now_command(ctx):
             """查詢目前溫濕度"""
+            # Defer response if interaction (slash command) takes time, though DB lookup is fast
+            if ctx.interaction:
+                await ctx.defer()
+
             reading = db.get_latest_reading()
             
             if not reading:
@@ -104,9 +115,13 @@ class SensorBot(commands.Bot):
             
             await ctx.send(embed=embed)
         
-        @self.command(name='history', aliases=['hist', '歷史'])
+        @self.hybrid_command(name='history', aliases=['hist', '歷史'], description="查詢過去 N 小時數據")
+        @app_commands.describe(hours="查詢的小時數 (預設 24)")
         async def history_command(ctx, hours: int = 24):
             """查詢歷史數據"""
+            if ctx.interaction:
+                await ctx.defer()
+
             if hours < 1:
                 hours = 1
             elif hours > 168:  # 最多 7 天
@@ -137,9 +152,13 @@ class SensorBot(commands.Bot):
             
             await ctx.send(embed=embed)
         
-        @self.command(name='stats', aliases=['統計'])
+        @self.hybrid_command(name='stats', aliases=['統計'], description="查詢統計資料")
+        @app_commands.describe(hours="查詢的小時數 (預設 24)")
         async def stats_command(ctx, hours: int = 24):
             """查詢統計資料"""
+            if ctx.interaction:
+                await ctx.defer()
+                
             if hours < 1:
                 hours = 1
             elif hours > 168:
@@ -173,9 +192,13 @@ class SensorBot(commands.Bot):
             
             await ctx.send(embed=embed)
         
-        @self.command(name='chart', aliases=['圖表', 'graph'])
+        @self.hybrid_command(name='chart', aliases=['圖表', 'graph'], description="生成歷史圖表")
+        @app_commands.describe(hours="查詢的小時數 (預設 6)")
         async def chart_command(ctx, hours: int = 6):
             """生成歷史圖表"""
+            if ctx.interaction:
+                await ctx.defer()
+
             if hours < 1:
                 hours = 1
             elif hours > 48:
@@ -186,8 +209,6 @@ class SensorBot(commands.Bot):
             if len(readings) < 2:
                 await ctx.send(f"❌ 數據不足，無法生成圖表（需要至少 2 筆數據）")
                 return
-            
-            await ctx.send("📊 正在生成圖表...")
             
             # 準備數據
             times = [datetime.fromisoformat(str(r['recorded_at'])) for r in readings]
@@ -242,9 +263,12 @@ class SensorBot(commands.Bot):
             
             await ctx.send(embed=embed, file=file)
         
-        @self.command(name='status', aliases=['狀態'])
+        @self.hybrid_command(name='status', aliases=['狀態'], description="查詢系統狀態")
         async def status_command(ctx):
             """查詢系統狀態"""
+            if ctx.interaction:
+                await ctx.defer()
+                
             total_count = db.get_reading_count()
             latest = db.get_latest_reading()
             

@@ -57,58 +57,15 @@
 - [Python](https://www.python.org/downloads/) 3.8+
 - 現代瀏覽器（Chrome、Firefox、Edge）
 
-## 🚀 快速開始
+## 🚀 快速開始 (Quick Start)
 
-### 1. Arduino 設定
+**詳細的跨平台安裝與部署教學，請參考 [📖 部署指南 (docs/DEPLOY.md)](docs/DEPLOY.md)。**
 
-1. 開啟 Arduino IDE
-2. 安裝 DHT 函式庫：
-   - 工具 → 管理函式庫 → 搜尋 `DHT sensor library` → 安裝
-3. 開啟 `arduino/dht_sensor/dht_sensor.ino`
-4. 如果使用 DHT22，修改程式碼中的：
-   ```cpp
-   #define DHTTYPE DHT22  // 改成 DHT22
-   ```
-5. 上傳程式碼到 Arduino
-
-### 2. 接線
-
-| DHT 感測器 | Arduino |
-|-----------|---------|
-| VCC       | 5V      |
-| GND       | GND     |
-| DATA      | A5      |
-
-詳細接線圖請參考 [docs/wiring.md](docs/wiring.md)
-
-### 3. Python 設定
-
-```bash
-# 進入 python 目錄
-cd python
-
-# 安裝依賴套件
-pip install -r requirements.txt
-
-# 編輯設定檔
-# 請修改 config.py 中的設定
-```
-
-### 4. Discord 設定
-
-#### Webhook 設定
-1. 在 Discord 伺服器中，前往 **伺服器設定** → **整合** → **Webhook**
-2. 點擊 **新增 Webhook**
-3. 複製 Webhook URL
-4. 貼到 `config.py` 的 `DISCORD_WEBHOOK_URL`
-
-#### Bot 設定（選用）
-1. 前往 [Discord Developer Portal](https://discord.com/developers/applications)
-2. 建立新應用程式
-3. 在 **Bot** 頁面，點擊 **Reset Token** 取得 Token
-4. 啟用 **Message Content Intent**
-5. 將 Token 貼到 `config.py` 的 `DISCORD_BOT_TOKEN`
-6. 使用 OAuth2 URL Generator 邀請 Bot 到伺服器
+該指南包含：
+- ✅ Windows / macOS / Linux 完整安裝步驟
+- ✅ 硬體接線詳細說明
+- ✅ Python 虛擬環境設定
+- ✅ Discord Bot 與 Webhook 設定
 
 ### 5. 執行
 

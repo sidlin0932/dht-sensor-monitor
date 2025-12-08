@@ -5,6 +5,65 @@
 格式基於 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/)，
 並遵循 [語意化版本](https://semver.org/lang/zh-TW/)。
 
+## 🗺️ Roadmap (版本規劃)
+
+- [ ] **[0.4.0]** ESP32 獨立運作版本
+- [ ] **[0.5.0]** 手機 APP 通知 (Native/Flutter)
+- [ ] **[0.6.0]** 雲端數據同步架構優化
+
+---
+
+## [Unreleased]
+
+### 🚧 正在進行中
+- 優化 Arduino 錯誤處理機制
+- 準備與 Render 雲端環境對接的測試
+
+---
+
+## [0.3.0] - 2025-12-08 17:35
+
+### ⚡ Discord Hybrid Commands
+
+#### 新增功能
+- **Hybrid Commands 支援**
+  - 支援 Slash Commands (`/`) 與傳統前綴指令 (`!`) 並存
+  - 指令自帶說明與參數提示
+  - 支援的指令：
+    - `/now`：查詢目前數據
+    - `/history [hours]`：查詢歷史紀錄
+    - `/stats [hours]`：查詢統計
+    - `/chart [hours]`：生成圖表
+    - `/status`：系統狀態
+  - 自動同步指令至 Discord (`setup_hook` 機制)
+
+---
+
+## [0.2.0] - 2025-12-08 15:04
+
+### 🎨 RGB LED + 蜂鳴器警報
+
+#### 新增功能
+- **RGB LED 空氣品質指示**
+  - 🟢 綠色：空氣品質良好（溫度 20-28°C，濕度 40-70%）
+  - 🔵 藍色：空氣品質普通
+  - 🔴 紅色：空氣品質差
+
+- **蜂鳴器警報**
+  - 空氣品質差時自動發出警報
+  - 可透過指令關閉：`BUZZER_OFF`
+
+- **新增 Arduino 指令**
+  - `TEST_LED`：測試 RGB LED
+  - `BUZZER_OFF`：關閉蜂鳴器
+
+#### 硬體變更
+- **新增接線**
+  - RGB LED：D9 (R)、D10 (G)、D11 (B)
+  - 蜂鳴器：D8
+
+---
+
 ## [0.1.0] - 2025-12-08 14:24
 
 ### 🎉 首次發布
@@ -18,7 +77,7 @@
 
 - **Python 後端系統**
   - Serial 通訊模組（自動偵測 Arduino）
-  - SQLite 資料庫儲存歷史數據
+  - JSON/CSV 資料儲存
   - Discord Webhook 通知（含美觀 Embed）
   - Discord Bot 互動指令
   - Flask Web API 伺服器
@@ -45,17 +104,3 @@
   - 完整 README
   - 接線圖說明
   - 安裝設定指南
-
----
-
-## 版本規劃
-
-### [0.2.0] - 計畫中
-- [ ] 新增多感測器支援
-- [ ] 新增數據匯出功能（CSV）
-- [ ] 新增儀表板更多圖表類型
-
-### [0.3.0] - 計畫中
-- [ ] ESP32 獨立運作版本
-- [ ] 手機 APP 通知
-- [ ] 雲端數據同步
