@@ -1,0 +1,22 @@
+# DHT 溫濕度監測系統 - Python 依賴套件
+# 安裝方式: pip install -r requirements.txt
+
+# Serial 通訊 (與 Arduino 溝通)
+pyserial>=3.5
+
+# Discord 整合
+discord.py>=2.3.0
+requests>=2.31.0
+
+# Web 伺服器
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# 資料處理
+python-dateutil>=2.8.2
+
+# 圖表生成 (Discord Bot 使用)
+matplotlib>=3.8.0
+
+# 環境變數管理
+python-dotenv>=1.0.0

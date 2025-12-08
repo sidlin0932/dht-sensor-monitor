@@ -1,0 +1,82 @@
+# DHT 溫濕度監測系統 - Git 忽略清單
+
+# ========== Python ==========
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虛擬環境
+venv/
+ENV/
+env/
+.venv/
+
+# ========== 資料庫與數據 ==========
+*.db
+*.sqlite
+*.sqlite3
+sensor_data.db
+
+# ========== 環境變數與機密 ==========
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ========== IDE ==========
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# ========== OS ==========
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ========== 日誌 ==========
+*.log
+logs/
+
+# ========== 暫存 ==========
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+
+# ========== Node.js（如果未來有用到）==========
+node_modules/
+npm-debug.log
+
+# ========== 其他 ==========
+*.pyc
+*.pyo
+.cache/

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🌡️ DHT 溫濕度監測儀表板</title>
+    <meta name="description" content="DHT 溫濕度監測系統 - 生物機電工程概論期末專題">
+
+    <!-- PWA 設定 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00d4ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DHT Monitor">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Orbitron:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+    <!-- 樣式 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="background-animation"></div>
+
+    <div class="container">
+        <!-- 標題區 -->
+        <header class="header">
+            <h1>🌡️ DHT 溫濕度監測系統</h1>
+            <p class="subtitle">生物機電工程概論 期末專題</p>
+            <div class="status-bar">
+                <span id="status-indicator" class="status-indicator offline">
+                    <span class="status-dot"></span>
+                    <span id="status-text">連接中...</span>
+                </span>
+                <span id="last-update" class="last-update">最後更新: --:--:--</span>
+            </div>
+        </header>
+
+        <!-- 即時數據卡片 -->
+        <section class="current-data">
+            <div class="data-card temperature">
+                <div class="card-icon">🌡️</div>
+                <div class="card-content">
+                    <h2>溫度</h2>
+                    <div class="value-container">
+                        <span id="current-temp" class="value">--.-</span>
+                        <span class="unit">°C</span>
+                    </div>
+                    <div class="trend" id="temp-trend">
+                        <span class="trend-icon">→</span>
+                        <span class="trend-text">穩定</span>
+                    </div>
+                </div>
+                <div class="card-glow"></div>
+            </div>
+
+            <div class="data-card humidity">
+                <div class="card-icon">💧</div>
+                <div class="card-content">
+                    <h2>濕度</h2>
+                    <div class="value-container">
+                        <span id="current-humidity" class="value">--.-</span>
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="trend" id="humidity-trend">
+                        <span class="trend-icon">→</span>
+                        <span class="trend-text">穩定</span>
+                    </div>
+                </div>
+                <div class="card-glow"></div>
+            </div>
+
+            <div class="data-card heat-index">
+                <div class="card-icon">🔥</div>
+                <div class="card-content">
+                    <h2>體感溫度</h2>
+                    <div class="value-container">
+                        <span id="current-heat-index" class="value">--.-</span>
+                        <span class="unit">°C</span>
+                    </div>
+                    <div class="comfort-level" id="comfort-level">
+                        舒適度: --
+                    </div>
+                </div>
+                <div class="card-glow"></div>
+            </div>
+        </section>
+
+        <!-- 統計資料 -->
+        <section class="stats-section">
+            <h2 class="section-title">📊 24 小時統計</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">平均溫度</span>
+                    <span id="avg-temp" class="stat-value">--.-°C</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">最高溫度</span>
+                    <span id="max-temp" class="stat-value">--.-°C</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">最低溫度</span>
+                    <span id="min-temp" class="stat-value">--.-°C</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">平均濕度</span>
+                    <span id="avg-humidity" class="stat-value">--.-%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">最高濕度</span>
+                    <span id="max-humidity" class="stat-value">--.-%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">最低濕度</span>
+                    <span id="min-humidity" class="stat-value">--.-%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 圖表區 -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <h2 class="section-title">📈 歷史趨勢</h2>
+                <div class="time-range-selector">
+                    <button class="range-btn" data-hours="1">1小時</button>
+                    <button class="range-btn" data-hours="6">6小時</button>
+                    <button class="range-btn active" data-hours="24">24小時</button>
+                    <button class="range-btn" data-hours="48">48小時</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="history-chart"></canvas>
+            </div>
+        </section>
+
+        <!-- 系統資訊 -->
+        <section class="system-info">
+            <div class="info-item">
+                <span class="info-icon">📝</span>
+                <span class="info-label">總記錄數</span>
+                <span id="total-readings" class="info-value">0</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">⏱️</span>
+                <span class="info-label">監測間隔</span>
+                <span class="info-value">1 分鐘</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">📡</span>
+                <span class="info-label">感測器</span>
+                <span class="info-value">DHT11/22</span>
+            </div>
+        </section>
+
+        <!-- 頁尾 -->
+        <footer class="footer">
+            <p>© 2025 生物機電工程概論 期末專題</p>
+            <p>Made with ❤️ using Arduino + Python + JavaScript</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+
+    <!-- PWA Service Worker 註冊 -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker 註冊成功:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('❌ Service Worker 註冊失敗:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>
