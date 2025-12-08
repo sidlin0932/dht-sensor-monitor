@@ -5,7 +5,11 @@ Render 雲端啟動腳本
 
 import os
 import sys
+import time
+import random
+import threading
 from pathlib import Path
+from datetime import datetime
 
 # 確保在正確的目錄
 project_root = Path(__file__).parent.parent
@@ -27,15 +31,64 @@ print("=" * 60)
 
 # 檢查啟動模式
 if '--web-only' in sys.argv:
-    # 僅啟動 Web 伺服器
-    print("📊 模式：僅 Web 伺服器")
+    # 僅啟動 Web 伺服器（不產生數據）
+    print("📊 模式：僅 Web 伺服器（等待外部數據推送）\n")
     from web_server import run_server
     run_server(
         host=os.environ['WEB_HOST'],
         port=int(os.environ['WEB_PORT']),
         debug=False
     )
+
 else:
-    # 啟動完整系統（含模擬）
-    print("🎯 模式：完整系統 (含模擬感測器)")
-    import main
+    # 啟動完整系統（含模擬數據產生器）
+    print("🎯 模式：完整系統（自動產生模擬數據）\n")
+    
+    import database as db
+    import web_server
+    
+    # 初始化資料庫
+    print("📦 初始化資料庫...")
+    db.init_database()
+    
+    # 在背景執行緒啟動 Web 伺服器
+    print("🌐 啟動 Web 伺服器（背景執行緒）...")
+    web_thread = web_server.start_server_thread(
+        host=os.environ['WEB_HOST'],
+        port=int(os.environ['WEB_PORT'])
+    )
+    
+    print("✅ Web 伺服器已啟動")
+    print(f"🌍 儀表板網址: http://{os.environ['WEB_HOST']}:{os.environ['WEB_PORT']}")
+    print("\n🎲 開始產生模擬數據（每 30 秒一筆）...\n")
+    
+    # 模擬數據產生器（主執行緒）
+    reading_count = 0
+    base_temp = 25.0
+    base_humidity = 60.0
+    
+    try:
+        while True:
+            # 產生模擬數據（帶有波動）
+            temperature = round(base_temp + random.uniform(-5, 5), 1)
+            humidity = round(base_humidity + random.uniform(-15, 15), 1)
+            heat_index = round(temperature + random.uniform(0, 3), 1)
+            
+            # 儲存到資料庫
+            db.insert_reading(temperature, humidity, heat_index)
+            
+            # 更新 Web API 的即時數據
+            web_server.update_current_reading(temperature, humidity, heat_index)
+            
+            reading_count += 1
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            print(f"[{timestamp}] 🌡️ {temperature:.1f}°C  💧 {humidity:.1f}%  🔥 {heat_index:.1f}°C  (#{reading_count})")
+            
+            # 每 30 秒產生一筆數據
+            time.sleep(30)
+    
+    except KeyboardInterrupt:
+        print("\n\n🛑 收到停止信號，正在關閉...")
+        print(f"📊 總共產生 {reading_count} 筆模擬數據")
+        sys.exit(0)
