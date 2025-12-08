@@ -80,20 +80,26 @@ else:
     from config import DISCORD_BOT_TOKEN
     bot_thread = None
     if DISCORD_BOT_TOKEN and DISCORD_BOT_TOKEN != "YOUR_BOT_TOKEN_HERE":
+        print("🤖 準備啟動 Discord Bot...")
         from discord_bot import SensorBot
         
         def run_bot():
             try:
+                print("🔄 Discord Bot 連線中...")
                 bot = SensorBot()
                 bot.run(DISCORD_BOT_TOKEN)
             except Exception as e:
                 print(f"❌ Discord Bot 啟動失敗: {e}")
+                import traceback
+                traceback.print_exc()
         
         bot_thread = threading.Thread(target=run_bot, daemon=True)
         bot_thread.start()
-        print("🤖 Discord Bot 啟動中（背景執行緒）...")
+        print("✅ Discord Bot 執行緒已啟動")
+        time.sleep(2)  # 等待 Bot 初始化
     else:
         print("⚠️  未設定 Discord Bot Token，跳過 Bot 功能")
+        print("   提示：在 Render 設定 DISCORD_BOT_TOKEN 環境變數以啟用 Bot")
     
     print("\n🎲 開始產生模擬數據（每 30 秒一筆）...")
     print("📊 Discord 通知：每 5 筆數據發送一次\n")
