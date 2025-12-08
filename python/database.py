@@ -1,49 +1,81 @@
 """
-資料庫模組 - SQLite 數據儲存
+資料儲存模組 - JSON/CSV 格式
 生物機電工程概論 期末專題
+
+這個模組使用 JSON 和 CSV 格式儲存數據，取代 SQLite。
+- JSON：完整數據，適合程式讀取
+- CSV：試算表格式，可用 Excel 開啟
 """
 
-import sqlite3
+import os
+import json
+import csv
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
-import os
+from pathlib import Path
 
 from config import DATABASE_PATH
 
 
-def get_connection() -> sqlite3.Connection:
-    """取得資料庫連線"""
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row  # 讓結果可以用欄位名稱存取
-    return conn
+# 取得資料目錄
+DATA_DIR = Path(os.path.dirname(DATABASE_PATH)) if DATABASE_PATH != "sensor_data.db" else Path(".")
+DATA_DIR = DATA_DIR / "data"
+
+# 檔案路徑
+JSON_FILE = DATA_DIR / "sensor_data.json"
+CSV_FILE = DATA_DIR / "sensor_data.csv"
 
 
 def init_database():
-    """初始化資料庫，建立資料表"""
-    conn = get_connection()
-    cursor = conn.cursor()
+    """初始化資料儲存"""
+    # 建立資料目錄
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
     
-    # 建立感測器數據表
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sensor_readings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            temperature REAL NOT NULL,
-            humidity REAL NOT NULL,
-            heat_index REAL,
-            recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+    # 初始化 JSON 檔案
+    if not JSON_FILE.exists():
+        with open(JSON_FILE, 'w', encoding='utf-8') as f:
+            json.dump({"readings": [], "metadata": {
+                "created_at": datetime.now().isoformat(),
+                "version": "0.1.0"
+            }}, f, ensure_ascii=False, indent=2)
     
-    # 建立索引以加速查詢
-    cursor.execute('''
-        CREATE INDEX IF NOT EXISTS idx_recorded_at 
-        ON sensor_readings(recorded_at)
-    ''')
+    # 初始化 CSV 檔案
+    if not CSV_FILE.exists():
+        with open(CSV_FILE, 'w', newline='', encoding='utf-8-sig') as f:
+            writer = csv.writer(f)
+            writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'recorded_at'])
     
-    conn.commit()
-    conn.close()
+    print(f"✅ 資料儲存初始化完成")
+    print(f"   📄 JSON: {JSON_FILE}")
+    print(f"   📊 CSV:  {CSV_FILE}")
+
+
+def _load_json() -> Dict:
+    """載入 JSON 數據"""
+    if not JSON_FILE.exists():
+        return {"readings": [], "metadata": {}}
     
-    print(f"✅ 資料庫初始化完成：{DATABASE_PATH}")
+    with open(JSON_FILE, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def _save_json(data: Dict):
+    """儲存 JSON 數據"""
+    with open(JSON_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _append_csv(reading: Dict):
+    """附加一筆數據到 CSV"""
+    with open(CSV_FILE, 'a', newline='', encoding='utf-8-sig') as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            reading['id'],
+            reading['temperature'],
+            reading['humidity'],
+            reading.get('heat_index', ''),
+            reading['recorded_at']
+        ])
 
 
 def insert_reading(temperature: float, humidity: float, heat_index: float = None) -> int:
@@ -58,37 +90,39 @@ def insert_reading(temperature: float, humidity: float, heat_index: float = None
     Returns:
         新增的記錄 ID
     """
-    conn = get_connection()
-    cursor = conn.cursor()
+    data = _load_json()
     
-    cursor.execute('''
-        INSERT INTO sensor_readings (temperature, humidity, heat_index, recorded_at)
-        VALUES (?, ?, ?, ?)
-    ''', (temperature, humidity, heat_index, datetime.now()))
+    # 產生新 ID
+    if data['readings']:
+        new_id = max(r['id'] for r in data['readings']) + 1
+    else:
+        new_id = 1
     
-    record_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
+    # 建立新記錄
+    reading = {
+        'id': new_id,
+        'temperature': round(temperature, 1),
+        'humidity': round(humidity, 1),
+        'heat_index': round(heat_index, 1) if heat_index else None,
+        'recorded_at': datetime.now().isoformat()
+    }
     
-    return record_id
+    # 加入 JSON
+    data['readings'].append(reading)
+    _save_json(data)
+    
+    # 附加到 CSV
+    _append_csv(reading)
+    
+    return new_id
 
 
 def get_latest_reading() -> Optional[Dict[str, Any]]:
     """取得最新一筆讀數"""
-    conn = get_connection()
-    cursor = conn.cursor()
+    data = _load_json()
     
-    cursor.execute('''
-        SELECT * FROM sensor_readings 
-        ORDER BY recorded_at DESC 
-        LIMIT 1
-    ''')
-    
-    row = cursor.fetchone()
-    conn.close()
-    
-    if row:
-        return dict(row)
+    if data['readings']:
+        return data['readings'][-1]
     return None
 
 
@@ -102,21 +136,16 @@ def get_readings_by_hours(hours: int = 24) -> List[Dict[str, Any]]:
     Returns:
         讀數列表
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    
+    data = _load_json()
     since = datetime.now() - timedelta(hours=hours)
     
-    cursor.execute('''
-        SELECT * FROM sensor_readings 
-        WHERE recorded_at >= ?
-        ORDER BY recorded_at ASC
-    ''', (since,))
+    results = []
+    for reading in data['readings']:
+        recorded_at = datetime.fromisoformat(reading['recorded_at'])
+        if recorded_at >= since:
+            results.append(reading)
     
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return [dict(row) for row in rows]
+    return results
 
 
 def get_statistics(hours: int = 24) -> Dict[str, Any]:
@@ -129,107 +158,169 @@ def get_statistics(hours: int = 24) -> Dict[str, Any]:
     Returns:
         統計資料字典
     """
-    conn = get_connection()
-    cursor = conn.cursor()
+    readings = get_readings_by_hours(hours)
     
-    since = datetime.now() - timedelta(hours=hours)
-    
-    cursor.execute('''
-        SELECT 
-            COUNT(*) as count,
-            AVG(temperature) as avg_temp,
-            MIN(temperature) as min_temp,
-            MAX(temperature) as max_temp,
-            AVG(humidity) as avg_humidity,
-            MIN(humidity) as min_humidity,
-            MAX(humidity) as max_humidity
-        FROM sensor_readings 
-        WHERE recorded_at >= ?
-    ''', (since,))
-    
-    row = cursor.fetchone()
-    conn.close()
-    
-    if row and row['count'] > 0:
+    if not readings:
         return {
-            'count': row['count'],
-            'temperature': {
-                'avg': round(row['avg_temp'], 1),
-                'min': row['min_temp'],
-                'max': row['max_temp']
-            },
-            'humidity': {
-                'avg': round(row['avg_humidity'], 1),
-                'min': row['min_humidity'],
-                'max': row['max_humidity']
-            },
+            'count': 0,
+            'temperature': {'avg': None, 'min': None, 'max': None},
+            'humidity': {'avg': None, 'min': None, 'max': None},
             'hours': hours
         }
     
+    temps = [r['temperature'] for r in readings]
+    humids = [r['humidity'] for r in readings]
+    
     return {
-        'count': 0,
-        'temperature': {'avg': None, 'min': None, 'max': None},
-        'humidity': {'avg': None, 'min': None, 'max': None},
+        'count': len(readings),
+        'temperature': {
+            'avg': round(sum(temps) / len(temps), 1),
+            'min': min(temps),
+            'max': max(temps)
+        },
+        'humidity': {
+            'avg': round(sum(humids) / len(humids), 1),
+            'min': min(humids),
+            'max': max(humids)
+        },
         'hours': hours
     }
 
 
 def get_reading_count() -> int:
     """取得總讀數數量"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT COUNT(*) FROM sensor_readings')
-    count = cursor.fetchone()[0]
-    
-    conn.close()
-    return count
+    data = _load_json()
+    return len(data['readings'])
 
 
-def cleanup_old_data(days: int = 30):
+def get_all_readings() -> List[Dict[str, Any]]:
+    """取得所有讀數"""
+    data = _load_json()
+    return data['readings']
+
+
+def cleanup_old_data(days: int = 30) -> int:
     """
     清理超過 N 天的舊數據
     
     Args:
         days: 保留的天數
-    """
-    conn = get_connection()
-    cursor = conn.cursor()
     
+    Returns:
+        刪除的記錄數
+    """
+    data = _load_json()
     cutoff = datetime.now() - timedelta(days=days)
     
-    cursor.execute('''
-        DELETE FROM sensor_readings 
-        WHERE recorded_at < ?
-    ''', (cutoff,))
+    original_count = len(data['readings'])
     
-    deleted = cursor.rowcount
-    conn.commit()
-    conn.close()
+    # 過濾保留的數據
+    data['readings'] = [
+        r for r in data['readings']
+        if datetime.fromisoformat(r['recorded_at']) >= cutoff
+    ]
     
-    print(f"🗑️ 已清理 {deleted} 筆超過 {days} 天的舊數據")
+    deleted = original_count - len(data['readings'])
+    
+    if deleted > 0:
+        _save_json(data)
+        # 重建 CSV
+        _rebuild_csv(data['readings'])
+        print(f"🗑️ 已清理 {deleted} 筆超過 {days} 天的舊數據")
+    
     return deleted
 
 
-if __name__ == "__main__":
-    # 測試資料庫功能
-    print("=== 資料庫測試 ===")
+def _rebuild_csv(readings: List[Dict]):
+    """重建 CSV 檔案"""
+    with open(CSV_FILE, 'w', newline='', encoding='utf-8-sig') as f:
+        writer = csv.writer(f)
+        writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'recorded_at'])
+        for reading in readings:
+            writer.writerow([
+                reading['id'],
+                reading['temperature'],
+                reading['humidity'],
+                reading.get('heat_index', ''),
+                reading['recorded_at']
+            ])
+
+
+def export_to_csv(filepath: str = None) -> str:
+    """
+    匯出數據到 CSV 檔案
     
-    # 初始化
+    Args:
+        filepath: 輸出路徑（預設使用標準 CSV 檔案）
+    
+    Returns:
+        輸出的檔案路徑
+    """
+    if filepath is None:
+        filepath = CSV_FILE
+    
+    data = _load_json()
+    
+    with open(filepath, 'w', newline='', encoding='utf-8-sig') as f:
+        writer = csv.writer(f)
+        writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'recorded_at'])
+        for reading in data['readings']:
+            writer.writerow([
+                reading['id'],
+                reading['temperature'],
+                reading['humidity'],
+                reading.get('heat_index', ''),
+                reading['recorded_at']
+            ])
+    
+    print(f"📊 已匯出 {len(data['readings'])} 筆數據到 {filepath}")
+    return str(filepath)
+
+
+def import_from_csv(filepath: str) -> int:
+    """
+    從 CSV 檔案匯入數據
+    
+    Args:
+        filepath: CSV 檔案路徑
+    
+    Returns:
+        匯入的記錄數
+    """
+    imported = 0
+    
+    with open(filepath, 'r', encoding='utf-8-sig') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            insert_reading(
+                float(row['temperature']),
+                float(row['humidity']),
+                float(row['heat_index']) if row.get('heat_index') else None
+            )
+            imported += 1
+    
+    print(f"📥 已匯入 {imported} 筆數據")
+    return imported
+
+
+if __name__ == "__main__":
+    # 測試
+    print("=== 資料儲存測試 ===")
+    
     init_database()
     
     # 插入測試數據
-    test_id = insert_reading(25.5, 60.2, 26.1)
-    print(f"✅ 插入測試數據，ID: {test_id}")
+    for i in range(5):
+        temp = 20 + i * 2
+        humidity = 50 + i * 5
+        record_id = insert_reading(temp, humidity, temp + 1)
+        print(f"  插入 ID {record_id}: {temp}°C, {humidity}%")
     
-    # 查詢最新數據
-    latest = get_latest_reading()
-    print(f"📊 最新讀數: {latest}")
+    # 查詢
+    print(f"\n最新讀數: {get_latest_reading()}")
+    print(f"總數量: {get_reading_count()}")
+    print(f"統計: {get_statistics(24)}")
     
-    # 統計數據
-    stats = get_statistics(24)
-    print(f"📈 統計數據: {stats}")
-    
-    # 總數量
-    count = get_reading_count()
-    print(f"📝 總讀數: {count}")
+    print(f"\n📂 數據檔案位置:")
+    print(f"   JSON: {JSON_FILE.absolute()}")
+    print(f"   CSV:  {CSV_FILE.absolute()}")

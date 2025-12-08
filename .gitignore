@@ -34,6 +34,10 @@ env/
 *.sqlite3
 sensor_data.db
 
+# JSON/CSV 數據檔案
+python/data/
+data/
+
 # ========== 環境變數與機密 ==========
 .env
 .env.local
