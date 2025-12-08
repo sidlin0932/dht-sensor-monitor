@@ -3,32 +3,26 @@
 
 services:
   - type: web
-    name: dht-monitor
-    env: python
+    name: dht-sensor-monitor
+    runtime: python
     region: singapore  # 選擇離台灣近的區域
     plan: free
-    buildCommand: pip install -r cloud/requirements.txt
-    startCommand: cd cloud && gunicorn app:app --bind 0.0.0.0:$PORT
+    branch: main
+    rootDir: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python render_start.py --web-only
     envVars:
       - key: PYTHON_VERSION
-        value: 3.12.0
-      - key: API_KEY
-        generateValue: true
+        value: 3.11.0
+      - key: WEB_HOST
+        value: 0.0.0.0
+      - key: SIMULATE_MODE
+        value: true
+      - key: SERIAL_PORT
+        value: SIMULATE
+      - key: DISCORD_BOT_TOKEN
+        sync: false  # 手動設定（選填）
       - key: DISCORD_WEBHOOK_URL
-        sync: false  # 手動設定
-      - key: TEMP_WARNING_HIGH
-        value: 35
-      - key: TEMP_WARNING_LOW
-        value: 10
-      - key: HUMIDITY_WARNING_HIGH
-        value: 80
-      - key: HUMIDITY_WARNING_LOW
-        value: 20
-    healthCheckPath: /api/health
-
-databases:
-  - name: dht-monitor-db
-    databaseName: dht_monitor
-    user: dht_user
-    plan: free
-    region: singapore
+        sync: false  # 手動設定（選填）
+    healthCheckPath: /api/status
+    autoDeploy: true
