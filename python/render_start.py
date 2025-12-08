@@ -46,10 +46,20 @@ else:
     
     import database as db
     import web_server
+    from config import DISCORD_WEBHOOK_URL
+    from discord_webhook import DiscordWebhook
     
     # 初始化資料庫
     print("📦 初始化資料庫...")
     db.init_database()
+    
+    # 初始化 Discord Webhook（如果有設定）
+    webhook = None
+    if DISCORD_WEBHOOK_URL and DISCORD_WEBHOOK_URL != "YOUR_WEBHOOK_URL_HERE":
+        webhook = DiscordWebhook()
+        print("✅ Discord Webhook 已啟用")
+    else:
+        print("⚠️  未設定 Discord Webhook，跳過通知功能")
     
     # 在背景執行緒啟動 Web 伺服器
     print("🌐 啟動 Web 伺服器（背景執行緒）...")
@@ -60,7 +70,14 @@ else:
     
     print("✅ Web 伺服器已啟動")
     print(f"🌍 儀表板網址: http://{os.environ['WEB_HOST']}:{os.environ['WEB_PORT']}")
-    print("\n🎲 開始產生模擬數據（每 30 秒一筆）...\n")
+    
+    # 發送啟動通知到 Discord
+    if webhook:
+        print("📤 發送啟動通知到 Discord...")
+        webhook.send_startup_message()
+    
+    print("\n🎲 開始產生模擬數據（每 30 秒一筆）...")
+    print("📊 Discord 通知：每 5 筆數據發送一次\n")
     
     # 模擬數據產生器（主執行緒）
     reading_count = 0
@@ -85,10 +102,21 @@ else:
             
             print(f"[{timestamp}] 🌡️ {temperature:.1f}°C  💧 {humidity:.1f}%  🔥 {heat_index:.1f}°C  (#{reading_count})")
             
+            # 每 5 筆數據發送一次到 Discord（避免過於頻繁）
+            if webhook and reading_count % 5 == 0:
+                print(f"  📤 發送數據到 Discord...")
+                webhook.send_sensor_data(temperature, humidity, heat_index)
+            
             # 每 30 秒產生一筆數據
             time.sleep(30)
     
     except KeyboardInterrupt:
         print("\n\n🛑 收到停止信號，正在關閉...")
         print(f"📊 總共產生 {reading_count} 筆模擬數據")
+        
+        # 發送關閉通知到 Discord
+        if webhook:
+            print("📤 發送關閉通知到 Discord...")
+            webhook.send_shutdown_message()
+        
         sys.exit(0)
