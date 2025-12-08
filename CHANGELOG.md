@@ -13,11 +13,53 @@
 
 ---
 
-## [Unreleased]
+##  [Unreleased]
 
 ### 🚧 正在進行中
 - 優化 Arduino 錯誤處理機制
-- 準備與 Render 雲端環境對接的測試
+- ESP32 獨立運作版本開發
+
+---
+
+## [0.4.0] - 2025-12-08 23:10
+
+### ☁️ Render 雲端部署
+
+#### 新增功能
+- **Render 雲端部署支援**
+  - 建立 `render.yaml` 配置檔（Blueprint）
+  - 建立 `render_start.py` 雲端啟動腳本
+  - 支援兩種模式：
+    - `--web-only`：僅 Web 伺服器（等待外部數據推送）
+    - 無參數：完整系統（自動產生模擬數據）
+  - 整合 Discord Bot、Webhook 和模擬數據產生器
+  - 每 30 秒產生一筆模擬數據
+  - 每 5 筆數據發送一次到 Discord
+
+- **Discord Bot 優化**
+  - 改用 **Guild Commands**（非 Global Commands）
+  - 新增 `DISCORD_GUILD_ID` 環境變數支援
+  - Guild Commands 立即生效（不需等待 1 小時）
+  - 修正 `app_commands` import 問題
+
+- **環境變數配置**
+  - `config.py` 的 `WEB_HOST` 和 `WEB_PORT` 支援環境變數覆蓋
+  - 更新 `.env.example` 加入雲端部署範例
+  - 支援從環境變數讀取所有配置
+
+- **文件**
+  - 建立 `docs/CLOUD_DEPLOY.md` 完整雲端部署教學
+  - 包含 Render 設定、UptimeRobot 設定、架構說明
+  - 三種 Start Command 方案說明
+  - 環境變數設定指南
+
+#### 修復
+- 修正 Render 無法找到 `requirements.txt` 的路徑問題
+- 修正應用程式提前退出的問題（端口綁定）
+- 修正 Discord Bot 在雲端環境的執行問題
+
+#### 變更
+- 部署架構改為混合模式：本地收集數據 + 雲端顯示
 
 ---
 

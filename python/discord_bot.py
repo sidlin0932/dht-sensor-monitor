@@ -4,8 +4,10 @@ Discord Bot 模組 - 互動指令
 """
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
+import os
 import asyncio
 import io
 import matplotlib
@@ -39,9 +41,18 @@ class SensorBot(commands.Bot):
     
     async def setup_hook(self):
         """Bot 啟動時的鉤子，用於同步指令"""
-        print("🔄 正在同步 Slash Commands...")
-        await self.tree.sync()
-        print("✅ Slash Commands 同步完成！")
+        # 從環境變數讀取 GUILD_ID（用於 guild-specific commands）
+        guild_id = os.getenv('DISCORD_GUILD_ID')
+        
+        if guild_id:
+            guild = discord.Object(id=int(guild_id))
+            print(f"🔄 正在同步 Guild Commands (Guild ID: {guild_id})...")
+            self.tree.copy_global_to(guild=guild)
+            await self.tree.sync(guild=guild)
+            print(f"✅ Guild Commands 同步完成！")
+        else:
+            print("⚠️  未設定 DISCORD_GUILD_ID，跳過指令同步")
+            print("   提示：設定 DISCORD_GUILD_ID 以啟用 Guild Commands（立即生效）")
     
     def add_commands(self):
         """註冊所有指令"""
