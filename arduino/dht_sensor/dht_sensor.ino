@@ -94,7 +94,7 @@ void blinkRGB(int r, int g, int b, int times);
 unsigned long lastReadTime = 0;
 unsigned long readCount = 0;
 AirQuality currentQuality = QUALITY_NORMAL;
-AirQuality currentQuality = QUALITY_NORMAL;
+
 bool manualColorMode = false;  // 是否由 Discord 控制 LED 顏色
 bool silentMode = false;       // 是否開啟靜音模式 (Discord 控制)
 
