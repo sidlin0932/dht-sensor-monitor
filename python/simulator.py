@@ -72,10 +72,19 @@ class SensorSimulator:
         # 計算體感溫度（簡化公式）
         heat_index = temperature + 0.5 * (humidity / 100) * (temperature - 14.5)
         
+        # 模擬 PPM 空氣品質（MQ135 感測器）
+        # 正常室內空氣：300-500 ppm
+        # 根據時間和隨機因素波動
+        base_ppm = 350
+        ppm_variation = math.sin(cycle_position) * 100  # 日間變化
+        air_quality = base_ppm + ppm_variation + random.uniform(-50, 50)
+        air_quality = max(100, min(1000, air_quality))  # 限制範圍
+        
         return {
             'temp': round(temperature, 1),
             'humidity': round(humidity, 1),
-            'heat_index': round(heat_index, 1)
+            'heat_index': round(heat_index, 1),
+            'air_quality': round(air_quality, 0)
         }
     
     def start(self):
@@ -150,20 +159,22 @@ class SensorSimulator:
                     
                     # 顯示數據
                     timestamp = datetime.now().strftime("%H:%M:%S")
-                    print(f"[{timestamp}] 🎮 模擬: 🌡️ {reading['temp']:.1f}°C  💧 {reading['humidity']:.1f}%  (#{self.total_readings})")
+                    print(f"[{timestamp}] 🎮 模擬: 🌡️ {reading['temp']:.1f}°C  💧 {reading['humidity']:.1f}%  💨 {reading['air_quality']:.0f}ppm  (#{self.total_readings})")
                     
                     # 儲存到資料庫
                     db.insert_reading(
                         reading['temp'],
                         reading['humidity'],
-                        reading['heat_index']
+                        reading['heat_index'],
+                        reading['air_quality']
                     )
                     
                     # 更新 Web API
                     web_server.update_current_reading(
                         reading['temp'],
                         reading['humidity'],
-                        reading['heat_index']
+                        reading['heat_index'],
+                        reading['air_quality']
                     )
                     
                     # 發送 Webhook
@@ -171,7 +182,8 @@ class SensorSimulator:
                         self.webhook.send_sensor_data(
                             reading['temp'],
                             reading['humidity'],
-                            reading['heat_index']
+                            reading['heat_index'],
+                            reading['air_quality']
                         )
                 
                 time.sleep(1)

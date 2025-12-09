@@ -152,7 +152,7 @@ class DHT_Monitor:
             temperature = data.get('temp')
             humidity = data.get('humidity')
             heat_index = data.get('heat_index')
-            air_quality = data.get('air_quality')  # MQ135 空氣品質
+            air_quality = data.get('air_quality')  # PPM 數據
             
             if temperature is None or humidity is None:
                 return
@@ -161,8 +161,8 @@ class DHT_Monitor:
             
             # 顯示數據
             timestamp = datetime.now().strftime("%H:%M:%S")
-            air_str = f"  Air: {air_quality} PPM" if air_quality else ""
-            print(f"[{timestamp}] Temp: {temperature:.1f}C  Hum: {humidity:.1f}%{air_str}  (#{self.total_readings})")
+            ppm_str = f"  💨 {air_quality:.0f}ppm" if air_quality is not None else ""
+            print(f"[{timestamp}] Temp: {temperature:.1f}C  Hum: {humidity:.1f}%{ppm_str}  (#{self.total_readings})")
             
             # 儲存到本地資料庫
             db.insert_reading(temperature, humidity, heat_index, air_quality)
@@ -187,7 +187,7 @@ class DHT_Monitor:
             self.errors += 1
             print(f"[ERROR] Data processing error: {e}")
     
-    def _send_webhook(self, temperature: float, humidity: float, heat_index: float = None, air_quality: int = None):
+    def _send_webhook(self, temperature: float, humidity: float, heat_index: float = None, air_quality: float = None):
         """發送 Webhook 通知"""
         if DISCORD_WEBHOOK_URL == "YOUR_WEBHOOK_URL_HERE":
             return
@@ -227,7 +227,7 @@ class DHT_Monitor:
             temperature = round(random.uniform(20, 30), 1)
             humidity = round(random.uniform(40, 70), 1)
             heat_index = round(temperature + random.uniform(0, 2), 1)
-            air_quality = random.randint(50, 350)  # 模擬 PPM 值
+            air_quality = int(random.uniform(200, 800))  # 模擬 PPM
             
             # 處理數據
             self._on_data_received({

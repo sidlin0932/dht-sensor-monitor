@@ -79,7 +79,7 @@ def _append_csv(reading: Dict):
         ])
 
 
-def insert_reading(temperature: float, humidity: float, heat_index: float = None, air_quality: int = None) -> int:
+def insert_reading(temperature: float, humidity: float, heat_index: float = None, air_quality: float = None) -> int:
     """
     新增一筆感測器讀數
     
@@ -87,7 +87,6 @@ def insert_reading(temperature: float, humidity: float, heat_index: float = None
         temperature: 溫度（攝氏）
         humidity: 濕度（%）
         heat_index: 體感溫度（可選）
-        air_quality: 空氣品質 PPM（可選）
     
     Returns:
         新增的記錄 ID
@@ -106,7 +105,7 @@ def insert_reading(temperature: float, humidity: float, heat_index: float = None
         'temperature': round(temperature, 1),
         'humidity': round(humidity, 1),
         'heat_index': round(heat_index, 1) if heat_index else None,
-        'air_quality': air_quality,
+        'air_quality': int(air_quality) if air_quality is not None else None,
         'recorded_at': datetime.now().isoformat()
     }
     
@@ -173,9 +172,8 @@ def get_statistics(hours: int = 24) -> Dict[str, Any]:
     
     temps = [r['temperature'] for r in readings]
     humids = [r['humidity'] for r in readings]
-    air_quals = [r['air_quality'] for r in readings if r.get('air_quality') is not None]
     
-    stats = {
+    return {
         'count': len(readings),
         'temperature': {
             'avg': round(sum(temps) / len(temps), 1),
@@ -189,16 +187,6 @@ def get_statistics(hours: int = 24) -> Dict[str, Any]:
         },
         'hours': hours
     }
-    
-    # 如果有空氣品質數據
-    if air_quals:
-        stats['air_quality'] = {
-            'avg': round(sum(air_quals) / len(air_quals)),
-            'min': min(air_quals),
-            'max': max(air_quals)
-        }
-    
-    return stats
 
 
 def get_reading_count() -> int:
@@ -333,7 +321,8 @@ def import_from_csv(filepath: str) -> int:
             insert_reading(
                 float(row['temperature']),
                 float(row['humidity']),
-                float(row['heat_index']) if row.get('heat_index') else None
+                float(row['heat_index']) if row.get('heat_index') else None,
+                float(row['air_quality']) if row.get('air_quality') else None
             )
             imported += 1
     

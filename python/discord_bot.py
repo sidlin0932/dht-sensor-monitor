@@ -426,6 +426,129 @@ class SensorBot(commands.Bot):
                 
             except Exception as e:
                 await ctx.send(f"AI 回覆失敗：{str(e)}")
+        
+        @self.hybrid_command(name='setcolor', aliases=['顏色', 'color'], description="🎨 設定 RGB LED 顏色")
+        @app_commands.describe(r="紅色 (0-255)", g="綠色 (0-255)", b="藍色 (0-255)")
+        async def setcolor_command(ctx, r: int, g: int, b: int):
+            """設定 RGB LED 顏色"""
+            if ctx.interaction:
+                await ctx.defer()
+            
+            # 驗證範圍
+            r = max(0, min(255, r))
+            g = max(0, min(255, g))
+            b = max(0, min(255, b))
+            
+            # 檢查是否有 Arduino 連接
+            if self.arduino_reader is None:
+                embed = discord.Embed(
+                    title="⚠️ 無法設定顏色",
+                    description="Arduino 未連接或系統處於模擬模式。",
+                    color=0xFFCC00
+                )
+                await ctx.send(embed=embed)
+                return
+            
+            # 發送指令到 Arduino
+            try:
+                success = self.arduino_reader.send_command(f"SET_COLOR:{r},{g},{b}")
+                
+                if success:
+                    # 計算顏色的 hex 值以顯示
+                    color_hex = (r << 16) | (g << 8) | b
+                    embed = discord.Embed(
+                        title="🎨 LED 顏色已設定!",
+                        description=f"RGB ({r}, {g}, {b})",
+                        color=color_hex
+                    )
+                    embed.add_field(name="💡 提示", value="使用 `/autocolor` 可切回自動模式", inline=False)
+                else:
+                    embed = discord.Embed(
+                        title="❌ 發送失敗",
+                        description="無法發送指令到 Arduino。",
+                        color=0xFF0000
+                    )
+                
+                await ctx.send(embed=embed)
+                
+            except Exception as e:
+                await ctx.send(f"❌ 設定顏色失敗：{str(e)}")
+        
+        @self.hybrid_command(name='autocolor', aliases=['自動顏色', 'auto'], description="🔄 切回自動 LED 模式")
+        async def autocolor_command(ctx):
+            """切回自動 LED 模式"""
+            if ctx.interaction:
+                await ctx.defer()
+            
+            if self.arduino_reader is None:
+                embed = discord.Embed(
+                    title="⚠️ 無法切換模式",
+                    description="Arduino 未連接或系統處於模擬模式。",
+                    color=0xFFCC00
+                )
+                await ctx.send(embed=embed)
+                return
+            
+            try:
+                success = self.arduino_reader.send_command("AUTO_COLOR")
+                
+                if success:
+                    embed = discord.Embed(
+                        title="🔄 已切回自動模式",
+                        description="LED 將根據環境品質自動變色\n🟢 良好 → 🔵 普通 → 🔴 警報",
+                        color=0x00FF00
+                    )
+                else:
+                    embed = discord.Embed(
+                        title="❌ 發送失敗",
+                        description="無法發送指令到 Arduino。",
+                        color=0xFF0000
+                    )
+                
+                await ctx.send(embed=embed)
+                
+            except Exception as e:
+                await ctx.send(f"❌ 切換失敗：{str(e)}")
+        
+        @self.hybrid_command(name='setbuzzer', aliases=['蜂鳴器', 'buzzer'], description="🔔 觸發蜂鳴器指定次數")
+        @app_commands.describe(times="響鈴次數 (1-10)")
+        async def setbuzzer_command(ctx, times: int = 3):
+            """觸發蜂鳴器指定次數"""
+            if ctx.interaction:
+                await ctx.defer()
+            
+            # 驗證範圍
+            times = max(1, min(10, times))
+            
+            if self.arduino_reader is None:
+                embed = discord.Embed(
+                    title="⚠️ 無法觸發蜂鳴器",
+                    description="Arduino 未連接或系統處於模擬模式。",
+                    color=0xFFCC00
+                )
+                await ctx.send(embed=embed)
+                return
+            
+            try:
+                success = self.arduino_reader.send_command(f"SET_BUZZER:{times}")
+                
+                if success:
+                    embed = discord.Embed(
+                        title="🔔 蜂鳴器已觸發!",
+                        description=f"響鈴次數：**{times}** 次",
+                        color=0xFF6600
+                    )
+                else:
+                    embed = discord.Embed(
+                        title="❌ 發送失敗",
+                        description="無法發送指令到 Arduino。",
+                        color=0xFF0000
+                    )
+                
+                await ctx.send(embed=embed)
+                
+            except Exception as e:
+                await ctx.send(f"❌ 觸發蜂鳴器失敗：{str(e)}")
     
     async def on_ready(self):
         """Bot 啟動完成"""

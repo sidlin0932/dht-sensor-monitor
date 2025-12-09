@@ -115,22 +115,23 @@ else:
             temperature = round(base_temp + random.uniform(-5, 5), 1)
             humidity = round(base_humidity + random.uniform(-15, 15), 1)
             heat_index = round(temperature + random.uniform(0, 3), 1)
+            air_quality = int(random.uniform(200, 800))
             
             # 儲存到資料庫
-            db.insert_reading(temperature, humidity, heat_index)
+            db.insert_reading(temperature, humidity, heat_index, air_quality)
             
             # 更新 Web API 的即時數據
-            web_server.update_current_reading(temperature, humidity, heat_index)
+            web_server.update_current_reading(temperature, humidity, heat_index, air_quality)
             
             reading_count += 1
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            print(f"[{timestamp}] 🌡️ {temperature:.1f}°C  💧 {humidity:.1f}%  🔥 {heat_index:.1f}°C  (#{reading_count})")
+            print(f"[{timestamp}] 🌡️ {temperature:.1f}°C  💧 {humidity:.1f}%  🔥 {heat_index:.1f}°C  💨 {air_quality}ppm  (#{reading_count})")
             
             # 每 5 筆數據發送一次到 Discord（避免過於頻繁）
             if webhook and reading_count % 5 == 0:
                 print(f"  📤 發送數據到 Discord...")
-                webhook.send_sensor_data(temperature, humidity, heat_index)
+                webhook.send_sensor_data(temperature, humidity, heat_index, air_quality)
             
             # 每 30 秒產生一筆數據
             time.sleep(30)

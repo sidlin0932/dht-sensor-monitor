@@ -1,13 +1,14 @@
 /*
  * DHT 溫濕度感測器 + MQ135 空氣品質 + RGB LED + 蜂鳴器
- * 生物機電工程概論 期末專題 v0.5.0
+ * 生物機電工程概論 期末專題 v0.3.0
  * 
  * 功能：
- *   - 讀取 DHT11/22 感測器數據（溫度、濕度）
- *   - 讀取 MQ135 空氣品質感測器數據
+ *   - 讀取 DHT11/22 感測器數據
+ *   - 讀取 MQ135 空氣品質 (PPM)
  *   - RGB LED 顯示空氣品質狀態
  *   - 蜂鳴器在空氣品質差時警報
  *   - 透過 Serial 傳送數據到電腦
+ *   - 支援 Discord 遠端控制 LED 顏色與蜂鳴器
  * 
  * 接線說明：
  *   DHT VCC  → Arduino 5V
@@ -33,23 +34,25 @@
 #include <DHT.h>
 
 // ========== 感測器設定 ==========
-#define DHTPIN 2            // DHT 感測器資料腳位
+#define DHTPIN 2           // DHT 感測器資料腳位
 #define DHTTYPE DHT11       // DHT11 或 DHT22
-#define MQ135_PIN A0        // MQ135 空氣品質感測器
+
+// ========== MQ135 設定 ==========
+#define MQ135_PIN A0        // MQ135 類比輸出腳位
 
 // ========== RGB LED 設定 ==========
-#define LED_R 9             // 紅色 LED (PWM)
-#define LED_G 10            // 綠色 LED (PWM)
+#define LED_R 10            // 紅色 LED (原本的 Green 腳位，因硬體接線為 GRB)
+#define LED_G 9             // 綠色 LED (原本的 Red 腳位)
 #define LED_B 11            // 藍色 LED (PWM)
 
 // ========== 蜂鳴器設定 ==========
 #define BUZZER_PIN 8        // 蜂鳴器腳位
 
 // ========== 時間設定 ==========
-#define READ_INTERVAL 60000 // 讀取間隔（毫秒）
+#define READ_INTERVAL 10000 // 讀取間隔（毫秒）- 改為 10 秒
 #define BAUD_RATE 9600      // Serial 通訊速率
 
-// ========== 溫濕度閾值 ==========
+// ========== 空氣品質閾值 ==========
 // 舒適範圍：溫度 20-28°C，濕度 40-70%
 #define TEMP_GOOD_MIN 20.0
 #define TEMP_GOOD_MAX 28.0
@@ -61,11 +64,9 @@
 #define HUMIDITY_BAD_MIN 20.0
 #define HUMIDITY_BAD_MAX 85.0
 
-// ========== MQ135 空氣品質閾值 ==========
-// 類比值 0-1023，轉換為估計 PPM
-#define AIR_GOOD_MAX 200     // 良好 (0-200)
-#define AIR_NORMAL_MAX 400   // 普通 (200-400)
-// > 400 為差
+// PPM 閾值
+#define PPM_GOOD_MAX 600
+#define PPM_BAD_MIN 1000
 
 // ==============================
 
@@ -79,10 +80,21 @@ enum AirQuality {
 // 初始化 DHT 感測器
 DHT dht(DHTPIN, DHTTYPE);
 
+// 函式原型宣告 (Forward Declarations)
+AirQuality evaluateAirQuality(float temp, float humidity, float ppm = 0);
+void readAndSendData();
+void sendStatus();
+void testLED();
+void buzz(int times);
+void setRGB(int r, int g, int b);
+void updateLED(AirQuality quality);
+void blinkRGB(int r, int g, int b, int times);
+
 // 變數
 unsigned long lastReadTime = 0;
 unsigned long readCount = 0;
 AirQuality currentQuality = QUALITY_NORMAL;
+bool manualColorMode = false;  // 是否由 Discord 控制 LED 顏色
 
 void setup() {
   // 初始化 Serial 通訊
@@ -110,9 +122,9 @@ void setup() {
   setRGB(0, 0, 255);
   
   // 啟動訊息
-  Serial.println("{\"status\": \"ready\", \"version\": \"0.5.0\", \"sensor\": \"" + 
+  Serial.println("{\"status\": \"ready\", \"version\": \"0.3.0\", \"sensor\": \"" + 
                  String(DHTTYPE == DHT11 ? "DHT11" : "DHT22") + 
-                 "\", \"features\": [\"rgb_led\", \"buzzer\", \"mq135\"]}");
+                 "\", \"features\": [\"rgb_led\", \"buzzer\", \"mq135\", \"discord_ctrl\"]}");
   
   // 立即讀取一次
   readAndSendData();
@@ -146,73 +158,78 @@ void loop() {
       Serial.println("{\"buzzer\": \"triggered\", \"count\": 3}");
     } else if (command == "BUZZER_OFF") {
       digitalWrite(BUZZER_PIN, LOW);
+    } else if (command.startsWith("SET_COLOR:")) {
+      // 從 Discord 控制 LED 顏色，格式: SET_COLOR:R,G,B
+      String colorData = command.substring(10);
+      int r, g, b;
+      sscanf(colorData.c_str(), "%d,%d,%d", &r, &g, &b);
+      r = constrain(r, 0, 255);
+      g = constrain(g, 0, 255);
+      b = constrain(b, 0, 255);
+      setRGB(r, g, b);
+      manualColorMode = true;
+      Serial.println("{\"led\": \"set\", \"r\": " + String(r) + ", \"g\": " + String(g) + ", \"b\": " + String(b) + "}");
+    } else if (command == "AUTO_COLOR") {
+      // 切回自動模式
+      manualColorMode = false;
+      updateLED(currentQuality);
+      Serial.println("{\"led\": \"auto\"}");
+    } else if (command.startsWith("SET_BUZZER:")) {
+      // 從 Discord 控制蜂鳴器次數，格式: SET_BUZZER:N
+      int times = command.substring(11).toInt();
+      times = constrain(times, 1, 10);
+      buzz(times);
+      Serial.println("{\"buzzer\": \"triggered\", \"count\": " + String(times) + "}");
     }
   }
 }
 
-int readAirQuality() {
-  // 讀取 MQ135 類比值 (0-1023)
-  int rawValue = analogRead(MQ135_PIN);
-  
-  // 轉換為估計 PPM (簡化公式)
-  // 實際應用需要校準
-  int ppm = map(rawValue, 0, 1023, 0, 1000);
-  
-  return ppm;
-}
-
 void readAndSendData() {
-  // 讀取 DHT 感測器
+  // 讀取感測器
   float humidity = dht.readHumidity();
   float temperature = dht.readTemperature();
   readCount++;
   
-  // 檢查 DHT 讀取結果
+  // 檢查讀取結果
   if (isnan(humidity) || isnan(temperature)) {
     Serial.println("{\"error\": \"Failed to read from DHT sensor\", \"count\": " + String(readCount) + "}");
+    // 讀取失敗閃爍紅燈
     blinkRGB(255, 0, 0, 3);
     return;
   }
   
-  // 讀取 MQ135 空氣品質
-  int airQuality = readAirQuality();
+  // 讀取 MQ135 PPM
+  int mq135Raw = analogRead(MQ135_PIN);
+  // 簡易轉換公式（線性近似，實際應根據校正曲線調整）
+  // PPM ≈ (analogValue / 1023) * 2000  (假設最大 2000 ppm)
+  float airQualityPPM = (mq135Raw / 1023.0) * 2000.0;
   
   // 計算體感溫度
   float heatIndex = dht.computeHeatIndex(temperature, humidity, false);
   
-  // 判斷綜合空氣品質 (結合溫濕度 + MQ135)
-  AirQuality quality = evaluateAirQuality(temperature, humidity, airQuality);
+  // 判斷空氣品質（加入 PPM）
+  AirQuality quality = evaluateAirQuality(temperature, humidity, airQualityPPM);
   currentQuality = quality;
   
-  // 設定 LED 顏色
-  updateLED(quality);
+  // 設定 LED 顏色（若非手動模式）
+  if (!manualColorMode) {
+    updateLED(quality);
+  }
   
   // 處理蜂鳴器
   if (quality == QUALITY_BAD) {
     buzz(3);  // 警報 3 次
   }
   
-  // 判斷空氣品質等級字串
+  // 輸出 JSON（加入 air_quality）
   String qualityStr = (quality == QUALITY_GOOD) ? "good" : 
                       (quality == QUALITY_NORMAL) ? "normal" : "bad";
   
-  // 判斷 MQ135 等級
-  String airLevelStr;
-  if (airQuality <= AIR_GOOD_MAX) {
-    airLevelStr = "good";
-  } else if (airQuality <= AIR_NORMAL_MAX) {
-    airLevelStr = "normal";
-  } else {
-    airLevelStr = "bad";
-  }
-  
-  // 輸出 JSON (包含 MQ135 數據)
   String jsonOutput = "{";
   jsonOutput += "\"temp\": " + String(temperature, 1) + ", ";
   jsonOutput += "\"humidity\": " + String(humidity, 1) + ", ";
   jsonOutput += "\"heat_index\": " + String(heatIndex, 1) + ", ";
-  jsonOutput += "\"air_quality\": " + String(airQuality) + ", ";
-  jsonOutput += "\"air_level\": \"" + airLevelStr + "\", ";
+  jsonOutput += "\"air_quality\": " + String(airQualityPPM, 0) + ", ";
   jsonOutput += "\"quality\": \"" + qualityStr + "\", ";
   jsonOutput += "\"count\": " + String(readCount);
   jsonOutput += "}";
@@ -220,23 +237,22 @@ void readAndSendData() {
   Serial.println(jsonOutput);
 }
 
-AirQuality evaluateAirQuality(float temp, float humidity, int airQuality) {
-  // 判斷溫度狀態
+AirQuality evaluateAirQuality(float temp, float humidity, float ppm) {
+  // 判斷是否在舒適範圍內
   bool tempGood = (temp >= TEMP_GOOD_MIN && temp <= TEMP_GOOD_MAX);
   bool tempBad = (temp < TEMP_BAD_MIN || temp > TEMP_BAD_MAX);
   
-  // 判斷濕度狀態
   bool humidityGood = (humidity >= HUMIDITY_GOOD_MIN && humidity <= HUMIDITY_GOOD_MAX);
   bool humidityBad = (humidity < HUMIDITY_BAD_MIN || humidity > HUMIDITY_BAD_MAX);
   
-  // 判斷空氣品質狀態 (MQ135)
-  bool airGood = (airQuality <= AIR_GOOD_MAX);
-  bool airBad = (airQuality > AIR_NORMAL_MAX);
+  // 判斷 PPM
+  bool ppmGood = (ppm <= PPM_GOOD_MAX);
+  bool ppmBad = (ppm >= PPM_BAD_MIN);
   
-  // 綜合判斷
-  if (tempBad || humidityBad || airBad) {
-    return QUALITY_BAD;     // 紅色 + 蜂鳴器
-  } else if (tempGood && humidityGood && airGood) {
+  // 判斷品質
+  if (tempBad || humidityBad || ppmBad) {
+    return QUALITY_BAD;     // 紅色
+  } else if (tempGood && humidityGood && ppmGood) {
     return QUALITY_GOOD;    // 綠色
   } else {
     return QUALITY_NORMAL;  // 藍色
@@ -288,9 +304,10 @@ void testLED() {
 
 void buzz(int times) {
   for (int i = 0; i < times; i++) {
-    digitalWrite(BUZZER_PIN, HIGH);
+    // 使用 tone() 驅動無源蜂鳴器，頻率 1000Hz
+    tone(BUZZER_PIN, 1000);
     delay(200);
-    digitalWrite(BUZZER_PIN, LOW);
+    noTone(BUZZER_PIN);
     delay(100);
   }
 }
@@ -299,16 +316,11 @@ void sendStatus() {
   String qualityStr = (currentQuality == QUALITY_GOOD) ? "good" : 
                       (currentQuality == QUALITY_NORMAL) ? "normal" : "bad";
   
-  // 讀取目前空氣品質
-  int airQuality = readAirQuality();
-  
   String statusJson = "{";
   statusJson += "\"status\": \"running\", ";
-  statusJson += "\"version\": \"0.5.0\", ";
+  statusJson += "\"version\": \"0.2.0\", ";
   statusJson += "\"sensor\": \"" + String(DHTTYPE == DHT11 ? "DHT11" : "DHT22") + "\", ";
-  statusJson += "\"dht_pin\": \"D2\", ";
-  statusJson += "\"mq135_pin\": \"A0\", ";
-  statusJson += "\"air_quality\": " + String(airQuality) + ", ";
+  statusJson += "\"pin\": \"A5\", ";
   statusJson += "\"interval_ms\": " + String(READ_INTERVAL) + ", ";
   statusJson += "\"read_count\": " + String(readCount) + ", ";
   statusJson += "\"current_quality\": \"" + qualityStr + "\", ";

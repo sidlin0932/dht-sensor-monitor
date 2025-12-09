@@ -217,7 +217,7 @@ def api_clear_hard():
 
 # ========== 供外部呼叫的函數 ==========
 
-def update_current_reading(temperature: float, humidity: float, heat_index: float = None, air_quality: int = None):
+def update_current_reading(temperature: float, humidity: float, heat_index: float = None, air_quality: float = None):
     """更新即時數據（供 main.py 呼叫）"""
     global current_reading
     current_reading = {

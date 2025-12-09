@@ -78,7 +78,7 @@ class DiscordWebhook:
         temperature: float,
         humidity: float,
         heat_index: float = None,
-        air_quality: int = None
+        air_quality: float = None
     ) -> bool:
         """
         發送感測器數據
@@ -93,7 +93,7 @@ class DiscordWebhook:
             是否發送成功
         """
         # 判斷狀態和顏色
-        status, color = self._get_status_and_color(temperature, humidity)
+        status, color = self._get_status_and_color(temperature, humidity, air_quality)
         
         # 建立 Embed
         embed = {
@@ -117,7 +117,7 @@ class DiscordWebhook:
                 }
             ],
             "footer": {
-                "text": "DHT + MQ135 感測器監測系統"
+                "text": "DHT 感測器監測系統"
             },
             "timestamp": datetime.utcnow().isoformat()
         }
@@ -130,16 +130,29 @@ class DiscordWebhook:
                 "inline": True
             })
         
-        # 如果有空氣品質數據，加入
+        # 如果有空氣品質，加入
         if air_quality is not None:
-            air_level = "良好 🟢" if air_quality <= 200 else "普通 🔵" if air_quality <= 400 else "不佳 🔴"
-            embed["fields"].append({
-                "name": "🌬️ 空氣品質",
-                "value": f"**{air_quality} PPM** ({air_level})",
+            ppm_status = self._get_ppm_status(air_quality)
+            embed["fields"].insert(3 if heat_index else 2, {
+                "name": "💨 空氣品質",
+                "value": f"**{air_quality:.0f} ppm** ({ppm_status})",
                 "inline": True
             })
         
         return self.send_embed(embed)
+    
+    def _get_ppm_status(self, ppm: float) -> str:
+        """根據 PPM 值判斷空氣品質狀態"""
+        if ppm <= 400:
+            return "優良 🌿"
+        elif ppm <= 600:
+            return "良好 👍"
+        elif ppm <= 1000:
+            return "普通 😐"
+        elif ppm <= 2000:
+            return "不良 ⚠️"
+        else:
+            return "危險 🚨"
     
     def send_warning(
         self,
@@ -224,7 +237,7 @@ class DiscordWebhook:
         
         return self.send_embed(embed)
     
-    def _get_status_and_color(self, temperature: float, humidity: float) -> tuple:
+    def _get_status_and_color(self, temperature: float, humidity: float, air_quality: float = None) -> tuple:
         """
         根據溫濕度判斷狀態和顏色
         
@@ -242,6 +255,10 @@ class DiscordWebhook:
             warnings.append("💦 高濕")
         elif humidity <= HUMIDITY_WARNING_LOW:
             warnings.append("🏜️ 乾燥")
+        
+        # 檢查空氣品質 (PPM > 1000 為警告)
+        if air_quality is not None and air_quality > 1000:
+            warnings.append("💨 空氣差")
         
         if warnings:
             return " | ".join(warnings), 0xFF6600  # 橘色警告
