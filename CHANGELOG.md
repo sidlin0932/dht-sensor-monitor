@@ -21,6 +21,22 @@
 
 ---
 
+## [0.5.3] - 2025-12-09 22:00
+
+### ☁️ 雲端同步 (Local to Cloud)
+
+#### 新增功能
+- **雲端同步功能 (Cloud Sync)**
+  - 支援將本地數據即時推送到 Render 網頁
+  - 實現「本地監測、雲端觀看」的混合架構
+  - `web_server.py`: 新增 `/api/push` 接收接口
+  - `cloud_sync.py`: 支援 PPM 數據同步
+- **Render 配置更新**
+  - Web Server 支援接收並暫存推送的數據 (含圖表支援)
+  - `render.yaml` 新增 `CLOUD_API_KEY` 環境變數
+
+---
+
 ## [0.5.2] - 2025-12-09 21:50
 
 ### 🔇 靜音模式與 Webhook 優化

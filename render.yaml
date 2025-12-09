@@ -24,5 +24,7 @@ services:
         sync: false  # 手動設定（選填）
       - key: DISCORD_WEBHOOK_URL
         sync: false  # 手動設定（選填）
+      - key: CLOUD_API_KEY
+        sync: false  # 手動設定 (必填，用於接收本地數據)
     healthCheckPath: /api/status
     autoDeploy: true

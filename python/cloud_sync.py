@@ -42,6 +42,7 @@ class CloudSync:
         temperature: float,
         humidity: float,
         heat_index: float = None,
+        air_quality: float = None,
         send_discord: bool = True,
         async_mode: bool = True
     ) -> bool:
@@ -52,6 +53,7 @@ class CloudSync:
             temperature: 溫度
             humidity: 濕度
             heat_index: 體感溫度
+            air_quality: 空氣品質
             send_discord: 是否讓雲端發送 Discord 通知
             async_mode: 是否非同步執行（不阻塞主程式）
         
@@ -64,19 +66,20 @@ class CloudSync:
         if async_mode:
             thread = threading.Thread(
                 target=self._push_reading_sync,
-                args=(temperature, humidity, heat_index, send_discord),
+                args=(temperature, humidity, heat_index, air_quality, send_discord),
                 daemon=True
             )
             thread.start()
             return True
         else:
-            return self._push_reading_sync(temperature, humidity, heat_index, send_discord)
+            return self._push_reading_sync(temperature, humidity, heat_index, air_quality, send_discord)
     
     def _push_reading_sync(
         self,
         temperature: float,
         humidity: float,
         heat_index: float = None,
+        air_quality: float = None,
         send_discord: bool = True
     ) -> bool:
         """同步推送數據"""
@@ -87,6 +90,7 @@ class CloudSync:
                     'temperature': temperature,
                     'humidity': humidity,
                     'heat_index': heat_index,
+                    'air_quality': air_quality,
                     'send_discord': send_discord
                 },
                 headers={

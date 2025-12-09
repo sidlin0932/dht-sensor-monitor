@@ -215,6 +215,59 @@ def api_clear_hard():
     })
 
 
+# ========== 雲端同步路由 ==========
+
+@app.route('/api/push', methods=['POST'])
+def api_push_data():
+    """接收來自本地的數據推送 (Cloud Receiver)"""
+    # 驗證 API Key (簡單版)
+    auth_header = request.headers.get('Authorization')
+    expected_key = f"Bearer {os.getenv('CLOUD_API_KEY', 'default_insecure_key')}"
+    
+    if auth_header != expected_key:
+        return jsonify({
+            'success': False,
+            'error': 'Unauthorized'
+        }), 401
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            'success': False,
+            'error': 'No data provided'
+        }), 400
+        
+    try:
+        # 更新即時數據
+        update_current_reading(
+            data.get('temperature'),
+            data.get('humidity'),
+            data.get('heat_index'),
+            data.get('air_quality')
+        )
+        
+        # 寫入資料庫（讓歷史圖表能運作）
+        # Render 免費版會定時重置，但至少短期內圖表有數據
+        db.insert_reading(
+            data.get('temperature'),
+            data.get('humidity'),
+            data.get('heat_index'),
+            data.get('air_quality')
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Data synced successfully'
+        })
+        
+    except Exception as e:
+        print(f"Error processing push data: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 # ========== 供外部呼叫的函數 ==========
 
 def update_current_reading(temperature: float, humidity: float, heat_index: float = None, air_quality: float = None):

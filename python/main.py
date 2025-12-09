@@ -174,6 +174,7 @@ class DHT_Monitor:
             if self.cloud_sync.enabled:
                 self.cloud_sync.push_reading(
                     temperature, humidity, heat_index,
+                    air_quality=air_quality,
                     send_discord=False  # 本地已發送 Discord
                 )
             
