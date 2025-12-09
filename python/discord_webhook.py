@@ -77,7 +77,8 @@ class DiscordWebhook:
         self,
         temperature: float,
         humidity: float,
-        heat_index: float = None
+        heat_index: float = None,
+        air_quality: int = None
     ) -> bool:
         """
         發送感測器數據
@@ -86,6 +87,7 @@ class DiscordWebhook:
             temperature: 溫度（攝氏）
             humidity: 濕度（%）
             heat_index: 體感溫度（可選）
+            air_quality: 空氣品質 PPM（可選）
         
         Returns:
             是否發送成功
@@ -115,7 +117,7 @@ class DiscordWebhook:
                 }
             ],
             "footer": {
-                "text": "DHT 感測器監測系統"
+                "text": "DHT + MQ135 感測器監測系統"
             },
             "timestamp": datetime.utcnow().isoformat()
         }
@@ -125,6 +127,15 @@ class DiscordWebhook:
             embed["fields"].insert(2, {
                 "name": "🔥 體感溫度",
                 "value": f"**{heat_index:.1f}°C**",
+                "inline": True
+            })
+        
+        # 如果有空氣品質數據，加入
+        if air_quality is not None:
+            air_level = "良好 🟢" if air_quality <= 200 else "普通 🔵" if air_quality <= 400 else "不佳 🔴"
+            embed["fields"].append({
+                "name": "🌬️ 空氣品質",
+                "value": f"**{air_quality} PPM** ({air_level})",
                 "inline": True
             })
         

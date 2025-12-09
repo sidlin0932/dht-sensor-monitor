@@ -152,6 +152,7 @@ class DHT_Monitor:
             temperature = data.get('temp')
             humidity = data.get('humidity')
             heat_index = data.get('heat_index')
+            air_quality = data.get('air_quality')  # MQ135 空氣品質
             
             if temperature is None or humidity is None:
                 return
@@ -160,13 +161,14 @@ class DHT_Monitor:
             
             # 顯示數據
             timestamp = datetime.now().strftime("%H:%M:%S")
-            print(f"[{timestamp}] Temp: {temperature:.1f}C  Hum: {humidity:.1f}%  (#{self.total_readings})")
+            air_str = f"  Air: {air_quality} PPM" if air_quality else ""
+            print(f"[{timestamp}] Temp: {temperature:.1f}C  Hum: {humidity:.1f}%{air_str}  (#{self.total_readings})")
             
             # 儲存到本地資料庫
-            db.insert_reading(temperature, humidity, heat_index)
+            db.insert_reading(temperature, humidity, heat_index, air_quality)
             
             # 更新本地 Web API
-            web_server.update_current_reading(temperature, humidity, heat_index)
+            web_server.update_current_reading(temperature, humidity, heat_index, air_quality)
             
             # 同步到雲端（非同步，不阻塞）
             if self.cloud_sync.enabled:
@@ -178,21 +180,21 @@ class DHT_Monitor:
             # 檢查是否需要發送 Webhook
             current_time = time.time()
             if current_time - self.last_webhook_time >= WEBHOOK_INTERVAL:
-                self._send_webhook(temperature, humidity, heat_index)
+                self._send_webhook(temperature, humidity, heat_index, air_quality)
                 self.last_webhook_time = current_time
         
         except Exception as e:
             self.errors += 1
             print(f"[ERROR] Data processing error: {e}")
     
-    def _send_webhook(self, temperature: float, humidity: float, heat_index: float = None):
+    def _send_webhook(self, temperature: float, humidity: float, heat_index: float = None, air_quality: int = None):
         """發送 Webhook 通知"""
         if DISCORD_WEBHOOK_URL == "YOUR_WEBHOOK_URL_HERE":
             return
         
         try:
             # 發送數據
-            self.webhook.send_sensor_data(temperature, humidity, heat_index)
+            self.webhook.send_sensor_data(temperature, humidity, heat_index, air_quality)
             
             # 檢查是否需要發送警告
             self.webhook.check_and_send_warning(temperature, humidity)
@@ -225,12 +227,14 @@ class DHT_Monitor:
             temperature = round(random.uniform(20, 30), 1)
             humidity = round(random.uniform(40, 70), 1)
             heat_index = round(temperature + random.uniform(0, 2), 1)
+            air_quality = random.randint(50, 350)  # 模擬 PPM 值
             
             # 處理數據
             self._on_data_received({
                 'temp': temperature,
                 'humidity': humidity,
-                'heat_index': heat_index
+                'heat_index': heat_index,
+                'air_quality': air_quality
             })
     
     def stop(self):

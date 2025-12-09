@@ -43,7 +43,7 @@ def init_database():
     if not CSV_FILE.exists():
         with open(CSV_FILE, 'w', newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f)
-            writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'recorded_at'])
+            writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'air_quality', 'recorded_at'])
     
     print(f"[OK] Data storage initialized")
     print(f"     JSON: {JSON_FILE}")
@@ -74,11 +74,12 @@ def _append_csv(reading: Dict):
             reading['temperature'],
             reading['humidity'],
             reading.get('heat_index', ''),
+            reading.get('air_quality', ''),
             reading['recorded_at']
         ])
 
 
-def insert_reading(temperature: float, humidity: float, heat_index: float = None) -> int:
+def insert_reading(temperature: float, humidity: float, heat_index: float = None, air_quality: int = None) -> int:
     """
     新增一筆感測器讀數
     
@@ -86,6 +87,7 @@ def insert_reading(temperature: float, humidity: float, heat_index: float = None
         temperature: 溫度（攝氏）
         humidity: 濕度（%）
         heat_index: 體感溫度（可選）
+        air_quality: 空氣品質 PPM（可選）
     
     Returns:
         新增的記錄 ID
@@ -104,6 +106,7 @@ def insert_reading(temperature: float, humidity: float, heat_index: float = None
         'temperature': round(temperature, 1),
         'humidity': round(humidity, 1),
         'heat_index': round(heat_index, 1) if heat_index else None,
+        'air_quality': air_quality,
         'recorded_at': datetime.now().isoformat()
     }
     
@@ -170,8 +173,9 @@ def get_statistics(hours: int = 24) -> Dict[str, Any]:
     
     temps = [r['temperature'] for r in readings]
     humids = [r['humidity'] for r in readings]
+    air_quals = [r['air_quality'] for r in readings if r.get('air_quality') is not None]
     
-    return {
+    stats = {
         'count': len(readings),
         'temperature': {
             'avg': round(sum(temps) / len(temps), 1),
@@ -185,6 +189,16 @@ def get_statistics(hours: int = 24) -> Dict[str, Any]:
         },
         'hours': hours
     }
+    
+    # 如果有空氣品質數據
+    if air_quals:
+        stats['air_quality'] = {
+            'avg': round(sum(air_quals) / len(air_quals)),
+            'min': min(air_quals),
+            'max': max(air_quals)
+        }
+    
+    return stats
 
 
 def get_reading_count() -> int:
@@ -257,13 +271,14 @@ def _rebuild_csv(readings: List[Dict]):
     """重建 CSV 檔案"""
     with open(CSV_FILE, 'w', newline='', encoding='utf-8-sig') as f:
         writer = csv.writer(f)
-        writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'recorded_at'])
+        writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'air_quality', 'recorded_at'])
         for reading in readings:
             writer.writerow([
                 reading['id'],
                 reading['temperature'],
                 reading['humidity'],
                 reading.get('heat_index', ''),
+                reading.get('air_quality', ''),
                 reading['recorded_at']
             ])
 
@@ -285,13 +300,14 @@ def export_to_csv(filepath: str = None) -> str:
     
     with open(filepath, 'w', newline='', encoding='utf-8-sig') as f:
         writer = csv.writer(f)
-        writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'recorded_at'])
+        writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'air_quality', 'recorded_at'])
         for reading in data['readings']:
             writer.writerow([
                 reading['id'],
                 reading['temperature'],
                 reading['humidity'],
                 reading.get('heat_index', ''),
+                reading.get('air_quality', ''),
                 reading['recorded_at']
             ])
     

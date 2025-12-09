@@ -14,6 +14,7 @@ const CONFIG = {
 let historyChart = null;
 let lastTemperature = null;
 let lastHumidity = null;
+let lastAirQuality = null;
 
 // ========== DOM 元素 ==========
 const elements = {
@@ -26,11 +27,13 @@ const elements = {
     currentTemp: document.getElementById('current-temp'),
     currentHumidity: document.getElementById('current-humidity'),
     currentHeatIndex: document.getElementById('current-heat-index'),
+    currentAirQuality: document.getElementById('current-air-quality'),
 
     // 趨勢
     tempTrend: document.getElementById('temp-trend'),
     humidityTrend: document.getElementById('humidity-trend'),
     comfortLevel: document.getElementById('comfort-level'),
+    airLevel: document.getElementById('air-level'),
 
     // 統計
     avgTemp: document.getElementById('avg-temp'),
@@ -86,6 +89,14 @@ async function updateCurrentData() {
         // 更新體感溫度
         if (data.heat_index !== null) {
             elements.currentHeatIndex.textContent = parseFloat(data.heat_index).toFixed(1);
+        }
+
+        // 更新空氣品質 (MQ135)
+        if (data.air_quality !== null && data.air_quality !== undefined) {
+            const airQuality = parseInt(data.air_quality);
+            elements.currentAirQuality.textContent = airQuality;
+            updateAirLevel(airQuality);
+            lastAirQuality = airQuality;
         }
 
         // 更新舒適度
@@ -213,6 +224,26 @@ function updateComfortLevel(temperature, humidity) {
     }
 
     elements.comfortLevel.textContent = `舒適度: ${emoji} ${level}`;
+}
+
+function updateAirLevel(airQuality) {
+    let level = '';
+    let emoji = '';
+
+    if (airQuality <= 200) {
+        level = '良好';
+        emoji = '🟢';
+    } else if (airQuality <= 400) {
+        level = '普通';
+        emoji = '🟡';
+    } else {
+        level = '不佳';
+        emoji = '🔴';
+    }
+
+    if (elements.airLevel) {
+        elements.airLevel.textContent = `等級: ${emoji} ${level}`;
+    }
 }
 
 // ========== 圖表 ==========

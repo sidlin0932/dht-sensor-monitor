@@ -280,6 +280,30 @@ body {
     box-shadow: 0 0 30px var(--heat-glow);
 }
 
+/* 空氣品質色彩 */
+.data-card.air-quality {
+    border-color: #7ed957;
+}
+
+.data-card.air-quality:hover {
+    box-shadow: 0 0 30px rgba(126, 217, 87, 0.3);
+}
+
+.air-quality .value {
+    color: #7ed957;
+    text-shadow: 0 0 20px rgba(126, 217, 87, 0.3);
+}
+
+.air-level {
+    margin-top: var(--spacing-sm);
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-full);
+    width: fit-content;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
 .card-icon {
     font-size: 3rem;
     margin-bottom: var(--spacing-sm);
