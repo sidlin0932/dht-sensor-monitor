@@ -22,6 +22,10 @@
     --heat-color: #ffa502;
     --heat-glow: rgba(255, 165, 2, 0.3);
 
+    /* PPM 空氣品質色彩 */
+    --ppm-color: #9b59b6;
+    --ppm-glow: rgba(155, 89, 182, 0.3);
+
     /* 背景色彩 */
     --bg-primary: #0a0a1a;
     --bg-secondary: #12122a;
@@ -235,7 +239,7 @@ body {
 /* === 即時數據卡片 === */
 .current-data {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
 }
@@ -280,28 +284,12 @@ body {
     box-shadow: 0 0 30px var(--heat-glow);
 }
 
-/* 空氣品質色彩 */
 .data-card.air-quality {
-    border-color: #7ed957;
+    border-color: var(--ppm-color);
 }
 
 .data-card.air-quality:hover {
-    box-shadow: 0 0 30px rgba(126, 217, 87, 0.3);
-}
-
-.air-quality .value {
-    color: #7ed957;
-    text-shadow: 0 0 20px rgba(126, 217, 87, 0.3);
-}
-
-.air-level {
-    margin-top: var(--spacing-sm);
-    padding: 0.25rem 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: var(--radius-full);
-    width: fit-content;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    box-shadow: 0 0 30px var(--ppm-glow);
 }
 
 .card-icon {
@@ -359,6 +347,11 @@ body {
     text-shadow: 0 0 20px var(--heat-glow);
 }
 
+.air-quality .value {
+    color: var(--ppm-color);
+    text-shadow: 0 0 20px var(--ppm-glow);
+}
+
 .unit {
     font-size: 1.5rem;
     color: var(--text-secondary);
@@ -393,6 +386,16 @@ body {
 }
 
 .comfort-level {
+    margin-top: var(--spacing-sm);
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-full);
+    width: fit-content;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.air-quality-level {
     margin-top: var(--spacing-sm);
     padding: 0.25rem 0.75rem;
     background: rgba(255, 255, 255, 0.05);

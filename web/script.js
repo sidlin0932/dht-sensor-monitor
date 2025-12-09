@@ -14,7 +14,6 @@ const CONFIG = {
 let historyChart = null;
 let lastTemperature = null;
 let lastHumidity = null;
-let lastAirQuality = null;
 
 // ========== DOM 元素 ==========
 const elements = {
@@ -27,13 +26,13 @@ const elements = {
     currentTemp: document.getElementById('current-temp'),
     currentHumidity: document.getElementById('current-humidity'),
     currentHeatIndex: document.getElementById('current-heat-index'),
-    currentAirQuality: document.getElementById('current-air-quality'),
+    currentPpm: document.getElementById('current-ppm'),
+    airQualityLevel: document.getElementById('air-quality-level'),
 
     // 趨勢
     tempTrend: document.getElementById('temp-trend'),
     humidityTrend: document.getElementById('humidity-trend'),
     comfortLevel: document.getElementById('comfort-level'),
-    airLevel: document.getElementById('air-level'),
 
     // 統計
     avgTemp: document.getElementById('avg-temp'),
@@ -91,12 +90,11 @@ async function updateCurrentData() {
             elements.currentHeatIndex.textContent = parseFloat(data.heat_index).toFixed(1);
         }
 
-        // 更新空氣品質 (MQ135)
+        // 更新 PPM 空氣品質
         if (data.air_quality !== null && data.air_quality !== undefined) {
-            const airQuality = parseInt(data.air_quality);
-            elements.currentAirQuality.textContent = airQuality;
-            updateAirLevel(airQuality);
-            lastAirQuality = airQuality;
+            const ppm = parseFloat(data.air_quality);
+            elements.currentPpm.textContent = ppm.toFixed(0);
+            updateAirQualityLevel(ppm);
         }
 
         // 更新舒適度
@@ -226,24 +224,28 @@ function updateComfortLevel(temperature, humidity) {
     elements.comfortLevel.textContent = `舒適度: ${emoji} ${level}`;
 }
 
-function updateAirLevel(airQuality) {
+function updateAirQualityLevel(ppm) {
     let level = '';
     let emoji = '';
 
-    if (airQuality <= 200) {
+    if (ppm <= 400) {
+        level = '優良';
+        emoji = '🌿';
+    } else if (ppm <= 600) {
         level = '良好';
-        emoji = '🟢';
-    } else if (airQuality <= 400) {
+        emoji = '👍';
+    } else if (ppm <= 1000) {
         level = '普通';
-        emoji = '🟡';
+        emoji = '😐';
+    } else if (ppm <= 2000) {
+        level = '不良';
+        emoji = '⚠️';
     } else {
-        level = '不佳';
-        emoji = '🔴';
+        level = '危險';
+        emoji = '🚨';
     }
 
-    if (elements.airLevel) {
-        elements.airLevel.textContent = `等級: ${emoji} ${level}`;
-    }
+    elements.airQualityLevel.textContent = `狀態: ${emoji} ${level}`;
 }
 
 // ========== 圖表 ==========
@@ -252,7 +254,7 @@ function renderChart(data) {
     const labels = data.map(d => new Date(d.timestamp));
     const temperatures = data.map(d => d.temperature);
     const humidities = data.map(d => d.humidity);
-    const airQualities = data.map(d => d.air_quality || null);
+    const ppmData = data.map(d => d.air_quality);
 
     // 如果圖表已存在，銷毀它
     if (historyChart) {
@@ -262,55 +264,45 @@ function renderChart(data) {
     // 建立新圖表
     const ctx = elements.chartCanvas.getContext('2d');
 
-    // 檢查是否有空氣品質數據
-    const hasAirQuality = airQualities.some(v => v !== null);
-
-    const datasets = [
-        {
-            label: '溫度 (°C)',
-            data: temperatures,
-            borderColor: '#ff6b6b',
-            backgroundColor: 'rgba(255, 107, 107, 0.1)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 2,
-            pointHoverRadius: 6,
-            yAxisID: 'y-temp',
-        },
-        {
-            label: '濕度 (%)',
-            data: humidities,
-            borderColor: '#4ecdc4',
-            backgroundColor: 'rgba(78, 205, 196, 0.1)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 2,
-            pointHoverRadius: 6,
-            yAxisID: 'y-humidity',
-        }
-    ];
-
-    // 如果有空氣品質數據，新增到圖表
-    if (hasAirQuality) {
-        datasets.push({
-            label: '空氣品質 (PPM)',
-            data: airQualities,
-            borderColor: '#7ed957',
-            backgroundColor: 'rgba(126, 217, 87, 0.1)',
-            fill: false,
-            tension: 0.4,
-            pointRadius: 2,
-            pointHoverRadius: 6,
-            yAxisID: 'y-air',
-            borderDash: [5, 5],  // 虛線
-        });
-    }
-
     historyChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: datasets
+            datasets: [
+                {
+                    label: '溫度 (°C)',
+                    data: temperatures,
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                    yAxisID: 'y-temp',
+                },
+                {
+                    label: '濕度 (%)',
+                    data: humidities,
+                    borderColor: '#4ecdc4',
+                    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                    yAxisID: 'y-humidity',
+                },
+                {
+                    label: '空氣品質 (PPM)',
+                    data: ppmData,
+                    borderColor: '#9b59b6', /* ppm-color */
+                    backgroundColor: 'rgba(155, 89, 182, 0.1)', /* ppm-glow */
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                    yAxisID: 'y-ppm',
+                }
+            ]
         },
         options: {
             responsive: true,
@@ -347,9 +339,8 @@ function renderChart(data) {
                                 label += ': ';
                             }
                             if (context.parsed.y !== null) {
-                                // PPM 不需要小數點
-                                if (context.dataset.yAxisID === 'y-air') {
-                                    label += Math.round(context.parsed.y);
+                                if (context.dataset.yAxisID === 'y-ppm') {
+                                    label += context.parsed.y.toFixed(0);
                                 } else {
                                     label += context.parsed.y.toFixed(1);
                                 }
@@ -417,22 +408,22 @@ function renderChart(data) {
                     min: 0,
                     max: 100,
                 },
-                'y-air': {
+                'y-ppm': {
                     type: 'linear',
                     position: 'right',
                     title: {
-                        display: hasAirQuality,
+                        display: true,
                         text: 'PPM',
-                        color: '#7ed957',
+                        color: '#9b59b6',
                     },
                     grid: {
                         drawOnChartArea: false,
                     },
                     ticks: {
-                        color: '#7ed957',
+                        color: '#9b59b6',
                     },
                     min: 0,
-                    display: hasAirQuality,
+                    // max: 2000
                 }
             }
         }
