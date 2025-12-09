@@ -6,7 +6,7 @@
 // ========== 設定 ==========
 const CONFIG = {
     API_BASE: '',  // 相對路徑，同一伺服器
-    UPDATE_INTERVAL: 5000,  // 數據更新間隔（毫秒）
+    UPDATE_INTERVAL: 10000,  // 數據更新間隔（毫秒）- 配合 Arduino 10 秒
     CHART_HOURS: 24,  // 預設圖表時間範圍
 };
 
@@ -585,9 +585,9 @@ async function init() {
     ]);
 
     // 設定定期更新
-    setInterval(updateCurrentData, CONFIG.UPDATE_INTERVAL);
-    setInterval(updateStats, 60000);  // 每分鐘更新統計
-    setInterval(() => updateChart(CONFIG.CHART_HOURS), 60000);  // 每分鐘更新圖表
+    setInterval(updateCurrentData, CONFIG.UPDATE_INTERVAL);  // 每 10 秒更新即時數據
+    setInterval(updateStats, 30000);  // 每 30 秒更新統計
+    setInterval(() => updateChart(CONFIG.CHART_HOURS), 30000);  // 每 30 秒更新圖表
     setInterval(updateSystemInfo, 30000);  // 每 30 秒更新系統資訊
 
     console.log('✅ 儀表板初始化完成！');

@@ -21,6 +21,17 @@
 
 ---
 
+## [0.5.5] - 2025-12-10 00:29
+
+### 🐛 Bug Fix (.env BOM)
+
+#### 修復
+- **修正 .env 環境變數無法載入問題**
+  - 移除 Windows UTF-8 BOM (Byte Order Mark) 導致 `python-dotenv` 無法正確解析第一行
+  - Discord Webhook URL 現在可正常讀取
+
+---
+
 ## [0.5.4] - 2025-12-09 22:35
 
 ### 🩹 Hotfix (Arduino Compilation)

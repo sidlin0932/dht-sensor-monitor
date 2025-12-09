@@ -161,7 +161,7 @@ class DHT_Monitor:
             
             # 顯示數據
             timestamp = datetime.now().strftime("%H:%M:%S")
-            ppm_str = f"  💨 {air_quality:.0f}ppm" if air_quality is not None else ""
+            ppm_str = f"  PPM: {air_quality:.0f}" if air_quality is not None else ""
             print(f"[{timestamp}] Temp: {temperature:.1f}C  Hum: {humidity:.1f}%{ppm_str}  (#{self.total_readings})")
             
             # 儲存到本地資料庫

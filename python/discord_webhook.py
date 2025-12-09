@@ -123,7 +123,7 @@ class DiscordWebhook:
                 }
             ],
             "footer": {
-                "text": "DHT 感測器監測系統"
+                "text": f"DHT 感測器監測系統 | {datetime.now().strftime('%H:%M:%S')}"
             },
             "timestamp": datetime.utcnow().isoformat()
         }

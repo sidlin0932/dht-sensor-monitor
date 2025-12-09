@@ -60,7 +60,7 @@ WEB_PORT = int(os.getenv("WEB_PORT", "5000"))
 
 # Webhook 發送間隔（秒），60 = 每分鐘
 # 如果要快速測試，可改成 10 秒
-WEBHOOK_INTERVAL = 60
+WEBHOOK_INTERVAL = 10
 
 # ========== 模擬模式設定 ==========
 # 當沒有 Arduino 時，使用模擬數據
