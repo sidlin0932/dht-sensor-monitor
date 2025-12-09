@@ -94,7 +94,9 @@ void blinkRGB(int r, int g, int b, int times);
 unsigned long lastReadTime = 0;
 unsigned long readCount = 0;
 AirQuality currentQuality = QUALITY_NORMAL;
+AirQuality currentQuality = QUALITY_NORMAL;
 bool manualColorMode = false;  // 是否由 Discord 控制 LED 顏色
+bool silentMode = false;       // 是否開啟靜音模式 (Discord 控制)
 
 void setup() {
   // 初始化 Serial 通訊
@@ -180,6 +182,12 @@ void loop() {
       times = constrain(times, 1, 10);
       buzz(times);
       Serial.println("{\"buzzer\": \"triggered\", \"count\": " + String(times) + "}");
+    } else if (command == "SILENT_ON") {
+      silentMode = true;
+      Serial.println("{\"silent\": true}");
+    } else if (command == "SILENT_OFF") {
+      silentMode = false;
+      Serial.println("{\"silent\": false}");
     }
   }
 }
@@ -303,6 +311,8 @@ void testLED() {
 }
 
 void buzz(int times) {
+  if (silentMode) return;  // 靜音模式下不發聲
+
   for (int i = 0; i < times; i++) {
     // 使用 tone() 驅動無源蜂鳴器，頻率 1000Hz
     tone(BUZZER_PIN, 1000);

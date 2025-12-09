@@ -41,6 +41,10 @@ class SensorBot(commands.Bot):
         # 註冊指令
         self.add_commands()
     
+    def set_arduino_reader(self, reader):
+        """設定 Arduino 讀取器實例"""
+        self.arduino_reader = reader
+    
     async def setup_hook(self):
         """Bot 啟動時的鉤子，用於同步指令"""
         # 從環境變數讀取 GUILD_ID（用於 guild-specific commands）
@@ -341,6 +345,42 @@ class SensorBot(commands.Bot):
             
             await ctx.send(embed=embed)
         
+        @self.hybrid_command(name='silent', aliases=['quiet', '靜音'], description="開啟/關閉靜音模式 (僅燈光警告)")
+        @app_commands.describe(mode="開啟 (on) 或關閉 (off)")
+        @app_commands.choices(mode=[
+            app_commands.Choice(name="開啟靜音 (ON)", value="on"),
+            app_commands.Choice(name="關閉靜音 (OFF)", value="off")
+        ])
+        async def silent_command(ctx, mode: str):
+            """設定靜音模式"""
+            if ctx.interaction:
+                await ctx.defer()
+            
+            if not self.arduino_reader:
+                await ctx.send("❌ 無法連接到 Arduino，無法設定靜音模式")
+                return
+            
+            mode_lower = mode.lower()
+            if mode_lower in ['on', 'true', 'enable', '1']:
+                success = self.arduino_reader.send_command("SILENT_ON")
+                status_text = "已開啟 (ON)"
+            else:
+                success = self.arduino_reader.send_command("SILENT_OFF")
+                status_text = "已關閉 (OFF)"
+            
+            if success:
+                embed = discord.Embed(
+                    title="🔇 靜音模式設定",
+                    description=f"靜音模式 {status_text}",
+                    color=0x808080 if mode_lower in ['on', 'true', 'enable', '1'] else 0x00FF00
+                )
+                if mode_lower in ['on', 'true', 'enable', '1']:
+                    embed.add_field(name="說明", value="蜂鳴器將停止運作，但在危險狀況下 LED 仍會閃爍。", inline=False)
+                
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send("❌ 設定失敗，請稍後再試")
+
         @self.hybrid_command(name='buzz', aliases=['蜂鳴', '警報', 'alarm'], description="手動觸發蜂鳴器警報")
         async def buzz_command(ctx):
             """手動觸發蜂鳴器警報"""

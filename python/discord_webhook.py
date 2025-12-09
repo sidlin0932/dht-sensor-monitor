@@ -95,25 +95,31 @@ class DiscordWebhook:
         # 判斷狀態和顏色
         status, color = self._get_status_and_color(temperature, humidity, air_quality)
         
+        # 建立單行數據字串 (一字排開)
+        data_text = f"🌡️ **{temperature:.1f}°C** | 💧 **{humidity:.1f}%**"
+        
+        if heat_index is not None:
+            data_text += f" | 🔥 **{heat_index:.1f}°C**"
+            
+        if air_quality is not None:
+            ppm_status = self._get_ppm_status(air_quality)
+            data_text += f" | 💨 **{air_quality:.0f} ppm**" # ({ppm_status})
+            
+            # 將狀態放在括號或其他地方? 
+            # 用戶希望一字排開，簡單一點比較好。 PPM 狀態可以放在下一行或同一行
+            # 讓狀態顯示在最後
+            # data_text += f" ({ppm_status})"
+
         # 建立 Embed
         embed = {
             "title": "🌡️ 溫濕度監測報告",
+            "description": data_text, # 使用 description 放單行數據
             "color": color,
             "fields": [
                 {
-                    "name": "🌡️ 溫度",
-                    "value": f"**{temperature:.1f}°C**",
-                    "inline": True
-                },
-                {
-                    "name": "💧 濕度",
-                    "value": f"**{humidity:.1f}%**",
-                    "inline": True
-                },
-                {
                     "name": "📊 狀態",
-                    "value": status,
-                    "inline": True
+                    "value": f"{status}" + (f" ({self._get_ppm_status(air_quality)})" if air_quality else ""),
+                    "inline": False # 狀態放下面一行
                 }
             ],
             "footer": {
@@ -121,23 +127,6 @@ class DiscordWebhook:
             },
             "timestamp": datetime.utcnow().isoformat()
         }
-        
-        # 如果有體感溫度，加入
-        if heat_index is not None:
-            embed["fields"].insert(2, {
-                "name": "🔥 體感溫度",
-                "value": f"**{heat_index:.1f}°C**",
-                "inline": True
-            })
-        
-        # 如果有空氣品質，加入
-        if air_quality is not None:
-            ppm_status = self._get_ppm_status(air_quality)
-            embed["fields"].insert(3 if heat_index else 2, {
-                "name": "💨 空氣品質",
-                "value": f"**{air_quality:.0f} ppm** ({ppm_status})",
-                "inline": True
-            })
         
         return self.send_embed(embed)
     
