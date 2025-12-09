@@ -59,11 +59,11 @@ class ArduinoReader:
             # 清空緩衝區
             self.serial.reset_input_buffer()
             
-            print(f"✅ 已連接到 Arduino: {self.port}")
+            print(f"[OK] Connected to Arduino: {self.port}")
             return True
             
         except serial.SerialException as e:
-            print(f"❌ 連接失敗: {e}")
+            print(f"[ERROR] Connection failed: {e}")
             if self.on_error_callback:
                 self.on_error_callback(str(e))
             return False
@@ -74,7 +74,7 @@ class ArduinoReader:
         
         if self.serial and self.serial.is_open:
             self.serial.close()
-            print("🔌 已中斷 Arduino 連接")
+            print("[OK] Arduino disconnected")
     
     def send_command(self, command: str) -> bool:
         """
@@ -93,7 +93,7 @@ class ArduinoReader:
             self.serial.write(f"{command}\n".encode())
             return True
         except Exception as e:
-            print(f"❌ 發送指令失敗: {e}")
+            print(f"[ERROR] Send command failed: {e}")
             return False
     
     def read_line(self) -> Optional[Dict[str, Any]]:
@@ -116,11 +116,11 @@ class ArduinoReader:
                         self.last_data = data
                         return data
                     except json.JSONDecodeError:
-                        print(f"⚠️ 無法解析 JSON: {line}")
+                        print(f"[WARN] Cannot parse JSON: {line}")
                         return None
         
         except Exception as e:
-            print(f"❌ 讀取錯誤: {e}")
+            print(f"[ERROR] Read error: {e}")
             if self.on_error_callback:
                 self.on_error_callback(str(e))
         
@@ -159,7 +159,7 @@ class ArduinoReader:
         self.read_thread = threading.Thread(target=self._continuous_read_loop, daemon=True)
         self.read_thread.start()
         
-        print("📡 開始連續監聽 Arduino 數據...")
+        print("[OK] Started listening to Arduino data...")
     
     def _continuous_read_loop(self):
         """連續讀取迴圈（在背景執行緒中運行）"""
@@ -175,7 +175,7 @@ class ArduinoReader:
                 time.sleep(0.1)
                 
             except Exception as e:
-                print(f"❌ 讀取迴圈錯誤: {e}")
+                print(f"[ERROR] Read loop error: {e}")
                 time.sleep(1)
     
     def stop_continuous_read(self):
@@ -183,7 +183,7 @@ class ArduinoReader:
         self.is_running = False
         if self.read_thread:
             self.read_thread.join(timeout=2)
-        print("⏹️ 已停止連續監聽")
+        print("[STOP] Stopped listening")
     
     def get_last_data(self) -> Optional[Dict[str, Any]]:
         """取得最後一筆讀取的數據"""
@@ -225,7 +225,7 @@ def find_arduino_port() -> Optional[str]:
     for port, description in ports:
         # 常見的 Arduino 描述
         if any(keyword in description.lower() for keyword in ['arduino', 'ch340', 'usb serial', 'usb-serial']):
-            print(f"🔍 找到可能的 Arduino: {port} - {description}")
+            print(f"[DETECT] Found possible Arduino: {port} - {description}")
             return port
     
     return None

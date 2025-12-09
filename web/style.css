@@ -9,53 +9,53 @@
     --primary-color: #00d4ff;
     --secondary-color: #7c3aed;
     --accent-color: #f472b6;
-    
+
     /* 溫度色彩 */
     --temp-color: #ff6b6b;
     --temp-glow: rgba(255, 107, 107, 0.3);
-    
+
     /* 濕度色彩 */
     --humidity-color: #4ecdc4;
     --humidity-glow: rgba(78, 205, 196, 0.3);
-    
+
     /* 體感溫度色彩 */
     --heat-color: #ffa502;
     --heat-glow: rgba(255, 165, 2, 0.3);
-    
+
     /* 背景色彩 */
     --bg-primary: #0a0a1a;
     --bg-secondary: #12122a;
     --bg-card: rgba(20, 20, 50, 0.6);
     --bg-card-hover: rgba(30, 30, 70, 0.8);
-    
+
     /* 文字色彩 */
     --text-primary: #ffffff;
     --text-secondary: #a0a0c0;
     --text-muted: #6060a0;
-    
+
     /* 狀態色彩 */
     --success-color: #00ff88;
     --warning-color: #ffcc00;
     --error-color: #ff4444;
-    
+
     /* 間距 */
     --spacing-xs: 0.5rem;
     --spacing-sm: 1rem;
     --spacing-md: 1.5rem;
     --spacing-lg: 2rem;
     --spacing-xl: 3rem;
-    
+
     /* 圓角 */
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 20px;
     --radius-full: 50%;
-    
+
     /* 陰影 */
     --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
-    
+
     /* 動畫 */
     --transition-fast: 0.2s ease;
     --transition-normal: 0.3s ease;
@@ -91,7 +91,7 @@ body {
     width: 100%;
     height: 100%;
     z-index: -1;
-    background: 
+    background:
         radial-gradient(ellipse at 20% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
         radial-gradient(ellipse at 80% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
         radial-gradient(ellipse at 40% 60%, rgba(244, 114, 182, 0.08) 0%, transparent 50%),
@@ -100,8 +100,15 @@ body {
 }
 
 @keyframes backgroundPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
 }
 
 /* === 容器 === */
@@ -134,8 +141,15 @@ body {
 }
 
 @keyframes titleGlow {
-    0%, 100% { filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.3)); }
-    50% { filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.6)); }
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.3));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.6));
+    }
 }
 
 .subtitle {
@@ -200,8 +214,17 @@ body {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.2); }
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
 }
 
 .last-update {
@@ -264,8 +287,15 @@ body {
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 .card-content h2 {
@@ -326,9 +356,17 @@ body {
     font-size: 1.2rem;
 }
 
-.trend.up .trend-icon { color: var(--temp-color); }
-.trend.down .trend-icon { color: var(--humidity-color); }
-.trend.stable .trend-icon { color: var(--text-secondary); }
+.trend.up .trend-icon {
+    color: var(--temp-color);
+}
+
+.trend.down .trend-icon {
+    color: var(--humidity-color);
+}
+
+.trend.stable .trend-icon {
+    color: var(--text-secondary);
+}
 
 .comfort-level {
     margin-top: var(--spacing-sm);
@@ -503,31 +541,144 @@ body {
     margin-bottom: var(--spacing-xs);
 }
 
+/* === 數據管理區塊 === */
+.data-management {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.clear-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.clear-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: 2px solid;
+    border-radius: var(--radius-md);
+    background: transparent;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    min-width: 160px;
+}
+
+.clear-btn .btn-icon {
+    font-size: 2rem;
+}
+
+.clear-btn .btn-text {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.clear-btn .btn-hint {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* 暫時清空按鈕 */
+.clear-btn.soft {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.clear-btn.soft:hover {
+    background: rgba(0, 212, 255, 0.15);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    transform: translateY(-3px);
+}
+
+/* 永久清空按鈕 */
+.clear-btn.hard {
+    border-color: var(--error-color);
+    color: var(--error-color);
+}
+
+.clear-btn.hard:hover {
+    background: rgba(255, 68, 68, 0.15);
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+    transform: translateY(-3px);
+}
+
+.clear-btn:active {
+    transform: translateY(0);
+}
+
+/* === 通知樣式 === */
+.notification {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 500;
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-lg);
+}
+
+.notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.notification.success {
+    background: rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--success-color);
+    color: var(--success-color);
+}
+
+.notification.error {
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid var(--error-color);
+    color: var(--error-color);
+}
+
+.notification.info {
+    background: rgba(0, 212, 255, 0.2);
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
 /* === 響應式設計 === */
 @media (max-width: 768px) {
     .container {
         padding: var(--spacing-md);
     }
-    
+
     .header h1 {
         font-size: 1.8rem;
     }
-    
+
     .value {
         font-size: 2.5rem;
     }
-    
+
     .chart-header {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .time-range-selector {
         width: 100%;
         overflow-x: auto;
         padding-bottom: var(--spacing-xs);
     }
-    
+
     .range-btn {
         flex-shrink: 0;
     }
@@ -538,11 +689,11 @@ body {
         flex-direction: column;
         gap: var(--spacing-sm);
     }
-    
+
     .current-data {
         grid-template-columns: 1fr;
     }
-    
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }

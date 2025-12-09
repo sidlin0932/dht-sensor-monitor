@@ -27,7 +27,7 @@
 #include <DHT.h>
 
 // ========== 感測器設定 ==========
-#define DHTPIN A5           // DHT 感測器資料腳位
+#define DHTPIN 2           // DHT 感測器資料腳位
 #define DHTTYPE DHT11       // DHT11 或 DHT22
 
 // ========== RGB LED 設定 ==========
@@ -127,6 +127,10 @@ void loop() {
       Serial.println("{\"pong\": true}");
     } else if (command == "TEST_LED") {
       testLED();
+    } else if (command == "BUZZ") {
+      // 遠端觸發蜂鳴器（由 Discord 指令觸發）
+      buzz(3);
+      Serial.println("{\"buzzer\": \"triggered\", \"count\": 3}");
     } else if (command == "BUZZER_OFF") {
       digitalWrite(BUZZER_PIN, LOW);
     }

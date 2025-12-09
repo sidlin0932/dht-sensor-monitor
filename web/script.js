@@ -379,6 +379,128 @@ function setupEventListeners() {
             updateChart(hours);
         });
     });
+
+    // 暫時清空按鈕
+    const softClearBtn = document.getElementById('btn-soft-clear');
+    if (softClearBtn) {
+        softClearBtn.addEventListener('click', handleSoftClear);
+    }
+
+    // 永久清空按鈕
+    const hardClearBtn = document.getElementById('btn-hard-clear');
+    if (hardClearBtn) {
+        hardClearBtn.addEventListener('click', handleHardClear);
+    }
+}
+
+// ========== 清空功能 ==========
+async function handleSoftClear() {
+    // 暫時清空 - 只重置前端顯示
+    try {
+        const response = await fetch('/api/clear/soft', { method: 'POST' });
+        const result = await response.json();
+
+        if (result.success) {
+            // 重置前端顯示
+            elements.currentTemp.textContent = '--.-';
+            elements.currentHumidity.textContent = '--.-';
+            elements.currentHeatIndex.textContent = '--.-';
+            lastTemperature = null;
+            lastHumidity = null;
+
+            // 清空圖表
+            if (historyChart) {
+                historyChart.data.labels = [];
+                historyChart.data.datasets.forEach(ds => ds.data = []);
+                historyChart.update();
+            }
+
+            showNotification('✅ 顯示已重整', 'success');
+        } else {
+            showNotification('❌ 清空失敗', 'error');
+        }
+    } catch (error) {
+        console.error('Soft clear error:', error);
+        showNotification('❌ 連線錯誤', 'error');
+    }
+}
+
+async function handleHardClear() {
+    // 永久清空 - 需要確認
+    const confirmed = confirm(
+        '⚠️ 永久清空警告 ⚠️\n\n' +
+        '這將永久刪除所有歷史數據！\n' +
+        '此操作無法復原！\n\n' +
+        '確定要繼續嗎？'
+    );
+
+    if (!confirmed) return;
+
+    // 二次確認
+    const doubleConfirm = confirm(
+        '🔴 最後確認 🔴\n\n' +
+        '真的要刪除所有數據嗎？'
+    );
+
+    if (!doubleConfirm) return;
+
+    try {
+        const response = await fetch('/api/clear/hard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ confirm: true })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            // 重置所有顯示
+            elements.currentTemp.textContent = '--.-';
+            elements.currentHumidity.textContent = '--.-';
+            elements.currentHeatIndex.textContent = '--.-';
+            elements.totalReadings.textContent = '0';
+            elements.avgTemp.textContent = '--.-°C';
+            elements.maxTemp.textContent = '--.-°C';
+            elements.minTemp.textContent = '--.-°C';
+            elements.avgHumidity.textContent = '--.-%';
+            elements.maxHumidity.textContent = '--.-%';
+            elements.minHumidity.textContent = '--.-%';
+            lastTemperature = null;
+            lastHumidity = null;
+
+            // 清空圖表
+            if (historyChart) {
+                historyChart.data.labels = [];
+                historyChart.data.datasets.forEach(ds => ds.data = []);
+                historyChart.update();
+            }
+
+            showNotification(`✅ 已刪除 ${result.deleted_count} 筆數據`, 'success');
+        } else {
+            showNotification('❌ 清空失敗: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Hard clear error:', error);
+        showNotification('❌ 連線錯誤', 'error');
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // 建立通知元素
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+
+    // 加入頁面
+    document.body.appendChild(notification);
+
+    // 觸發動畫
+    setTimeout(() => notification.classList.add('show'), 10);
+
+    // 自動移除
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 // ========== 初始化 ==========

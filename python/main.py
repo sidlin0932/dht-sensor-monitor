@@ -14,6 +14,7 @@ import time
 import threading
 import signal
 import sys
+import argparse
 from datetime import datetime
 
 # 匯入模組
@@ -33,8 +34,9 @@ from cloud_sync import get_cloud_sync
 class DHT_Monitor:
     """DHT 溫濕度監測系統主類別"""
     
-    def __init__(self):
+    def __init__(self, port: str = None):
         self.is_running = False
+        self.override_port = port  # 命令列指定的 Port
         
         # 初始化各模組
         self.arduino: ArduinoReader = None
@@ -52,50 +54,50 @@ class DHT_Monitor:
     def start(self):
         """啟動監測系統"""
         print("=" * 50)
-        print("🌡️  DHT 溫濕度監測系統")
-        print("   生物機電工程概論 期末專題")
+        print("[DHT] Temperature and Humidity Monitor")
+        print("      Biomechatronics Final Project")
         print("=" * 50)
         
         # 初始化資料庫
-        print("\n📦 初始化資料庫...")
+        print("\n[DB] Initializing database...")
         db.init_database()
         
         # 連接 Arduino
-        print("\n🔌 連接 Arduino...")
+        print("\n[SERIAL] Connecting to Arduino...")
         self._connect_arduino()
         
         # 啟動 Web 伺服器
-        print("\n🌐 啟動 Web 伺服器...")
+        print("\n[WEB] Starting web server...")
         web_server.start_server_thread()
         
         # 啟動 Discord Bot（如果有設定）
         if DISCORD_BOT_TOKEN != "YOUR_BOT_TOKEN_HERE":
-            print("\n🤖 啟動 Discord Bot...")
+            print("\n[BOT] Starting Discord Bot...")
             self._start_discord_bot()
         else:
-            print("\n⚠️  未設定 Discord Bot Token，跳過 Bot 功能")
+            print("\n[WARN] Discord Bot Token not set, skipping Bot")
         
         # 發送啟動通知
         if DISCORD_WEBHOOK_URL != "YOUR_WEBHOOK_URL_HERE":
-            print("\n📤 發送啟動通知到 Discord...")
+            print("\n[WEBHOOK] Sending startup notification...")
             self.webhook.send_startup_message()
         
         # 雲端同步狀態
         if self.cloud_sync.enabled:
-            print("\n☁️ 雲端同步已啟用")
+            print("\n[CLOUD] Cloud sync enabled")
             if self.cloud_sync.check_connection():
-                print("   ✅ 雲端連接正常")
+                print("   [OK] Cloud connection OK")
             else:
-                print("   ⚠️ 無法連接雲端，將僅使用本機")
+                print("   [WARN] Cannot connect to cloud, using local only")
         
         # 開始監測
         print("\n" + "=" * 50)
-        print("✅ 系統啟動完成！")
-        print(f"📊 儀表板: http://127.0.0.1:5000")
-        print(f"📡 監測間隔: {WEBHOOK_INTERVAL} 秒")
+        print("[OK] System started!")
+        print(f"[URL] Dashboard: http://127.0.0.1:5000")
+        print(f"[INFO] Interval: {WEBHOOK_INTERVAL} seconds")
         if self.cloud_sync.enabled:
-            print(f"☁️ 雲端同步: 已啟用")
-        print("🛑 按 Ctrl+C 停止系統")
+            print(f"[CLOUD] Sync: Enabled")
+        print("[CTRL+C] Press Ctrl+C to stop")
         print("=" * 50 + "\n")
         
         self.is_running = True
@@ -103,20 +105,25 @@ class DHT_Monitor:
     
     def _connect_arduino(self):
         """連接 Arduino"""
-        # 嘗試自動偵測
-        port = find_arduino_port()
-        if port:
-            print(f"🔍 自動偵測到 Arduino: {port}")
+        # 優先使用命令列指定的 Port
+        if self.override_port:
+            port = self.override_port
+            print(f"[CLI] Using specified port: {port}")
         else:
-            port = SERIAL_PORT
-            print(f"📌 使用設定的埠號: {port}")
+            # 嘗試自動偵測
+            port = find_arduino_port()
+            if port:
+                print(f"[DETECT] Found Arduino: {port}")
+            else:
+                port = SERIAL_PORT
+                print(f"[CONFIG] Using configured port: {port}")
         
         self.arduino = ArduinoReader(port=port)
         
         # 嘗試連接
         if not self.arduino.connect():
-            print("\n⚠️  無法連接 Arduino，進入模擬模式")
-            print("   程式會繼續運行，但會產生隨機數據")
+            print("\n[WARN] Cannot connect to Arduino, entering simulation mode")
+            print("       Program will continue with random data")
             self.arduino = None
         else:
             # 設定回呼函數
@@ -126,11 +133,15 @@ class DHT_Monitor:
         """在背景執行緒啟動 Discord Bot"""
         self.bot = SensorBot()
         
+        # 傳遞 Arduino Reader 給 Bot（讓 /buzz 指令可用）
+        if self.arduino:
+            self.bot.set_arduino_reader(self.arduino)
+        
         def run_bot():
             try:
                 self.bot.run(DISCORD_BOT_TOKEN)
             except Exception as e:
-                print(f"❌ Discord Bot 錯誤: {e}")
+                print(f"[ERROR] Discord Bot error: {e}")
         
         bot_thread = threading.Thread(target=run_bot, daemon=True)
         bot_thread.start()
@@ -149,7 +160,7 @@ class DHT_Monitor:
             
             # 顯示數據
             timestamp = datetime.now().strftime("%H:%M:%S")
-            print(f"[{timestamp}] 🌡️ {temperature:.1f}°C  💧 {humidity:.1f}%  (讀取 #{self.total_readings})")
+            print(f"[{timestamp}] Temp: {temperature:.1f}C  Hum: {humidity:.1f}%  (#{self.total_readings})")
             
             # 儲存到本地資料庫
             db.insert_reading(temperature, humidity, heat_index)
@@ -172,7 +183,7 @@ class DHT_Monitor:
         
         except Exception as e:
             self.errors += 1
-            print(f"❌ 處理數據錯誤: {e}")
+            print(f"[ERROR] Data processing error: {e}")
     
     def _send_webhook(self, temperature: float, humidity: float, heat_index: float = None):
         """發送 Webhook 通知"""
@@ -187,7 +198,7 @@ class DHT_Monitor:
             self.webhook.check_and_send_warning(temperature, humidity)
             
         except Exception as e:
-            print(f"❌ Webhook 發送失敗: {e}")
+            print(f"[ERROR] Webhook failed: {e}")
     
     def _main_loop(self):
         """主迴圈"""
@@ -200,7 +211,7 @@ class DHT_Monitor:
                 time.sleep(1)
         
         except KeyboardInterrupt:
-            print("\n\n🛑 收到停止信號...")
+            print("\n\n[STOP] Received stop signal...")
             self.stop()
     
     def _simulate_data(self):
@@ -226,7 +237,7 @@ class DHT_Monitor:
         """停止監測系統"""
         self.is_running = False
         
-        print("\n正在關閉系統...")
+        print("\nShutting down...")
         
         # 停止 Arduino 連線
         if self.arduino:
@@ -238,22 +249,29 @@ class DHT_Monitor:
             self.webhook.send_shutdown_message()
         
         # 顯示統計
-        print("\n📊 執行統計：")
-        print(f"   總讀取次數: {self.total_readings}")
-        print(f"   錯誤次數: {self.errors}")
-        print(f"   資料庫總記錄: {db.get_reading_count()}")
+        print("\n[STATS] Execution statistics:")
+        print(f"   Total readings: {self.total_readings}")
+        print(f"   Errors: {self.errors}")
+        print(f"   DB records: {db.get_reading_count()}")
         
         # 雲端同步統計
         if self.cloud_sync.enabled:
             stats = self.cloud_sync.get_stats()
-            print(f"   ☁️ 雲端同步: {stats['successful_syncs']} 成功 / {stats['failed_syncs']} 失敗")
+            print(f"   Cloud sync: {stats['successful_syncs']} success / {stats['failed_syncs']} failed")
         
-        print("\n👋 系統已關閉，再見！")
+        print("\n[BYE] System closed. Goodbye!")
 
 
 def main():
     """主程式進入點"""
-    monitor = DHT_Monitor()
+    # 解析命令列參數
+    parser = argparse.ArgumentParser(description='DHT 溫濕度監測系統')
+    parser.add_argument('--port', '-p', type=str, help='Arduino 串列埠 (例如: COM4)')
+    parser.add_argument('--simulate', '-s', action='store_true', help='使用模擬數據')
+    args = parser.parse_args()
+    
+    # 建立監測實例
+    monitor = DHT_Monitor(port=args.port if not args.simulate else None)
     
     # 設定信號處理
     def signal_handler(sig, frame):

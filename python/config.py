@@ -24,6 +24,12 @@ DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
 # Discord Bot 指令前綴
 BOT_COMMAND_PREFIX = "!"
 
+# ========== Gemini AI 設定 ==========
+
+# Gemini API Key
+# 取得方式：https://aistudio.google.com/app/apikey
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY")
+
 # ========== Arduino Serial 設定 ==========
 
 # Serial Port

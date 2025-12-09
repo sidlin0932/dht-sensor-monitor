@@ -160,6 +160,56 @@ def api_status():
     })
 
 
+@app.route('/api/clear/soft', methods=['POST'])
+def api_clear_soft():
+    """暫時清空 - 只重置前端即時數據"""
+    global current_reading
+    current_reading = {
+        'temperature': None,
+        'humidity': None,
+        'heat_index': None,
+        'timestamp': None
+    }
+    
+    return jsonify({
+        'success': True,
+        'message': 'Soft clear completed. Display data reset.',
+        'type': 'soft'
+    })
+
+
+@app.route('/api/clear/hard', methods=['POST'])
+def api_clear_hard():
+    """永久清空 - 刪除資料庫中的所有數據"""
+    # 從請求中獲取確認碼（防止誤操作）
+    data = request.get_json() or {}
+    confirm = data.get('confirm', False)
+    
+    if not confirm:
+        return jsonify({
+            'success': False,
+            'error': 'Confirmation required. Send {"confirm": true} to proceed.'
+        }), 400
+    
+    deleted_count = db.clear_all_data()
+    
+    # 同時重置即時數據
+    global current_reading
+    current_reading = {
+        'temperature': None,
+        'humidity': None,
+        'heat_index': None,
+        'timestamp': None
+    }
+    
+    return jsonify({
+        'success': True,
+        'message': f'Hard clear completed. {deleted_count} records permanently deleted.',
+        'deleted_count': deleted_count,
+        'type': 'hard'
+    })
+
+
 # ========== 供外部呼叫的函數 ==========
 
 def update_current_reading(temperature: float, humidity: float, heat_index: float = None):
@@ -178,8 +228,8 @@ def run_server(host: str = None, port: int = None, debug: bool = False):
     host = host or WEB_HOST
     port = port or WEB_PORT
     
-    print(f"🌐 Web 伺服器啟動中...")
-    print(f"📊 儀表板網址: http://{host}:{port}")
+    print(f"[WEB] Starting web server...")
+    print(f"[URL] Dashboard: http://{host}:{port}")
     
     app.run(host=host, port=port, debug=debug, use_reloader=False)
 
@@ -200,7 +250,7 @@ if __name__ == "__main__":
     db.init_database()
     
     # 插入一些測試數據
-    print("插入測試數據...")
+    print("Inserting test data...")
     for i in range(10):
         temp = 20 + i * 0.5
         humidity = 50 + i * 2
@@ -208,3 +258,4 @@ if __name__ == "__main__":
     
     # 啟動伺服器
     run_server(debug=True)
+

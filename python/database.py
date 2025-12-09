@@ -45,9 +45,9 @@ def init_database():
             writer = csv.writer(f)
             writer.writerow(['id', 'temperature', 'humidity', 'heat_index', 'recorded_at'])
     
-    print(f"✅ 資料儲存初始化完成")
-    print(f"   📄 JSON: {JSON_FILE}")
-    print(f"   📊 CSV:  {CSV_FILE}")
+    print(f"[OK] Data storage initialized")
+    print(f"     JSON: {JSON_FILE}")
+    print(f"     CSV:  {CSV_FILE}")
 
 
 def _load_json() -> Dict:
@@ -226,9 +226,31 @@ def cleanup_old_data(days: int = 30) -> int:
         _save_json(data)
         # 重建 CSV
         _rebuild_csv(data['readings'])
-        print(f"🗑️ 已清理 {deleted} 筆超過 {days} 天的舊數據")
+        print(f"[CLEANUP] Deleted {deleted} records older than {days} days")
     
     return deleted
+
+
+def clear_all_data() -> int:
+    """
+    永久清空所有數據
+    
+    Returns:
+        刪除的記錄數
+    """
+    data = _load_json()
+    deleted_count = len(data['readings'])
+    
+    # 清空所有數據
+    data['readings'] = []
+    data['metadata']['last_cleared'] = datetime.now().isoformat()
+    _save_json(data)
+    
+    # 重建空的 CSV
+    _rebuild_csv([])
+    
+    print(f"[CLEAR] Permanently deleted {deleted_count} records")
+    return deleted_count
 
 
 def _rebuild_csv(readings: List[Dict]):
@@ -273,7 +295,7 @@ def export_to_csv(filepath: str = None) -> str:
                 reading['recorded_at']
             ])
     
-    print(f"📊 已匯出 {len(data['readings'])} 筆數據到 {filepath}")
+    print(f"[EXPORT] Exported {len(data['readings'])} records to {filepath}")
     return str(filepath)
 
 
@@ -299,7 +321,7 @@ def import_from_csv(filepath: str) -> int:
             )
             imported += 1
     
-    print(f"📥 已匯入 {imported} 筆數據")
+    print(f"[IMPORT] Imported {imported} records")
     return imported
 
 
@@ -321,6 +343,6 @@ if __name__ == "__main__":
     print(f"總數量: {get_reading_count()}")
     print(f"統計: {get_statistics(24)}")
     
-    print(f"\n📂 數據檔案位置:")
+    print(f"\n[INFO] Data file locations:")
     print(f"   JSON: {JSON_FILE.absolute()}")
     print(f"   CSV:  {CSV_FILE.absolute()}")

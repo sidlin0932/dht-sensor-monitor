@@ -18,6 +18,7 @@ from typing import Optional
 
 from config import DISCORD_BOT_TOKEN, BOT_COMMAND_PREFIX
 import database as db
+import gemini_ai
 
 
 class SensorBot(commands.Bot):
@@ -35,6 +36,7 @@ class SensorBot(commands.Bot):
         )
         
         self.last_reading: Optional[dict] = None
+        self.arduino_reader = None  # 用於發送指令到 Arduino
         
         # 註冊指令
         self.add_commands()
@@ -72,11 +74,33 @@ class SensorBot(commands.Bot):
                 (f"/stats 或 {BOT_COMMAND_PREFIX}stats [hours]", "查詢統計資料"),
                 (f"/chart 或 {BOT_COMMAND_PREFIX}chart [hours]", "生成歷史圖表"),
                 (f"/status 或 {BOT_COMMAND_PREFIX}status", "查詢系統狀態"),
+                (f"/buzz 或 {BOT_COMMAND_PREFIX}buzz", "🔔 手動觸發蜂鳴器警報"),
+                (f"/ai 或 {BOT_COMMAND_PREFIX}ai [問題]", "與 AI 助手對話"),
                 (f"/help 或 {BOT_COMMAND_PREFIX}help", "顯示此幫助訊息"),
             ]
             
             for cmd, desc in commands_list:
                 embed.add_field(name=cmd, value=desc, inline=False)
+            
+            # 自動警報說明
+            embed.add_field(
+                name="\n⚠️ 自動警報觸發條件",
+                value="當以下情況發生時，Arduino 蜂鳴器會自動響起：\n"
+                      "🔴 **溫度過高**: > 35°C\n"
+                      "🔵 **溫度過低**: < 15°C\n"
+                      "💧 **濕度過高**: > 85%\n"
+                      "🏜️ **濕度過低**: < 20%",
+                inline=False
+            )
+            
+            # RGB LED 說明
+            embed.add_field(
+                name="\n💡 RGB LED 燈號說明",
+                value="🟢 **綠色**: 溫度 20-28°C 且 濕度 40-70% (舒適)\n"
+                      "🔵 **藍色**: 溫濕度在正常範圍 (一般)\n"
+                      "🔴 **紅色**: 溫度 <15°C 或 >35°C，或濕度 <20% 或 >85% (警報)",
+                inline=False
+            )
             
             embed.set_footer(text="生物機電工程概論 期末專題")
             await ctx.send(embed=embed)
@@ -316,6 +340,92 @@ class SensorBot(commands.Bot):
             embed.set_footer(text="DHT 感測器監測系統")
             
             await ctx.send(embed=embed)
+        
+        @self.hybrid_command(name='buzz', aliases=['蜂鳴', '警報', 'alarm'], description="手動觸發蜂鳴器警報")
+        async def buzz_command(ctx):
+            """手動觸發蜂鳴器警報"""
+            if ctx.interaction:
+                await ctx.defer()
+            
+            # 檢查是否有 Arduino 連接
+            if self.arduino_reader is None:
+                embed = discord.Embed(
+                    title="⚠️ 無法觸發蜂鳴器",
+                    description="Arduino 未連接或系統處於模擬模式。\n請確認 Arduino 已連接到電腦。",
+                    color=0xFFCC00
+                )
+                await ctx.send(embed=embed)
+                return
+            
+            # 發送指令到 Arduino
+            try:
+                success = self.arduino_reader.send_command("BUZZ")
+                
+                if success:
+                    embed = discord.Embed(
+                        title="🔔 蜂鳴器已觸發!",
+                        description="已成功獲送指令到 Arduino，蜂鳴器應該正在響起！",
+                        color=0xFF6600
+                    )
+                    embed.add_field(
+                        name="⚠️ 自動警報條件",
+                        value="• 溫度 > 35°C 或 < 15°C\n• 濕度 > 85% 或 < 20%",
+                        inline=False
+                    )
+                else:
+                    embed = discord.Embed(
+                        title="❌ 發送失敗",
+                        description="無法發送指令到 Arduino，請檢查連接狀態。",
+                        color=0xFF0000
+                    )
+                
+                await ctx.send(embed=embed)
+                
+            except Exception as e:
+                await ctx.send(f"❌ 觸發蜂鳴器失敗：{str(e)}")
+        
+        @self.hybrid_command(name='ai', aliases=['問', 'ask'], description="與 AI 助手對話")
+        @app_commands.describe(question="你想問的問題")
+        async def ai_command(ctx, *, question: str = None):
+            """與 AI 助手對話"""
+            if ctx.interaction:
+                await ctx.defer()
+            
+            if not question:
+                await ctx.send("請提供問題！例如：`!ai 現在溫度如何？`")
+                return
+            
+            # 檢查 AI 是否啟用
+            ai = gemini_ai.get_ai()
+            if not ai.enabled:
+                embed = discord.Embed(
+                    title="AI 功能未啟用",
+                    description="請設定 GEMINI_API_KEY 環境變數以啟用 AI 功能。\n\n"
+                                "取得 API Key: https://aistudio.google.com/app/apikey",
+                    color=0xFFCC00
+                )
+                await ctx.send(embed=embed)
+                return
+            
+            # 呼叫 AI
+            try:
+                response = await ai.chat(question)
+                
+                # 限制回覆長度
+                if len(response) > 1900:
+                    response = response[:1900] + "..."
+                
+                embed = discord.Embed(
+                    title="🤖 AI 助手回覆",
+                    description=response,
+                    color=0x9932CC
+                )
+                embed.set_footer(text=f"問題：{question[:50]}...")
+                
+                await ctx.send(embed=embed)
+                
+            except Exception as e:
+                await ctx.send(f"AI 回覆失敗：{str(e)}")
     
     async def on_ready(self):
         """Bot 啟動完成"""
@@ -325,6 +435,10 @@ class SensorBot(commands.Bot):
     def update_last_reading(self, reading: dict):
         """更新最後一筆讀數（供外部呼叫）"""
         self.last_reading = reading
+    
+    def set_arduino_reader(self, reader):
+        """設定 Arduino Reader 參考（供外部呼叫）"""
+        self.arduino_reader = reader
 
 
 def run_bot():
