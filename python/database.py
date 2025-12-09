@@ -53,6 +53,8 @@ def init_database():
 def _load_json() -> Dict:
     """載入 JSON 數據"""
     if not JSON_FILE.exists():
+        # 確保目錄存在
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
         return {"readings": [], "metadata": {}}
     
     with open(JSON_FILE, 'r', encoding='utf-8') as f:
@@ -61,6 +63,8 @@ def _load_json() -> Dict:
 
 def _save_json(data: Dict):
     """儲存 JSON 數據"""
+    # 確保目錄存在
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
     with open(JSON_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
