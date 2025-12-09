@@ -252,6 +252,7 @@ function renderChart(data) {
     const labels = data.map(d => new Date(d.timestamp));
     const temperatures = data.map(d => d.temperature);
     const humidities = data.map(d => d.humidity);
+    const airQualities = data.map(d => d.air_quality || null);
 
     // 如果圖表已存在，銷毀它
     if (historyChart) {
@@ -261,34 +262,55 @@ function renderChart(data) {
     // 建立新圖表
     const ctx = elements.chartCanvas.getContext('2d');
 
+    // 檢查是否有空氣品質數據
+    const hasAirQuality = airQualities.some(v => v !== null);
+
+    const datasets = [
+        {
+            label: '溫度 (°C)',
+            data: temperatures,
+            borderColor: '#ff6b6b',
+            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2,
+            pointHoverRadius: 6,
+            yAxisID: 'y-temp',
+        },
+        {
+            label: '濕度 (%)',
+            data: humidities,
+            borderColor: '#4ecdc4',
+            backgroundColor: 'rgba(78, 205, 196, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2,
+            pointHoverRadius: 6,
+            yAxisID: 'y-humidity',
+        }
+    ];
+
+    // 如果有空氣品質數據，新增到圖表
+    if (hasAirQuality) {
+        datasets.push({
+            label: '空氣品質 (PPM)',
+            data: airQualities,
+            borderColor: '#7ed957',
+            backgroundColor: 'rgba(126, 217, 87, 0.1)',
+            fill: false,
+            tension: 0.4,
+            pointRadius: 2,
+            pointHoverRadius: 6,
+            yAxisID: 'y-air',
+            borderDash: [5, 5],  // 虛線
+        });
+    }
+
     historyChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: '溫度 (°C)',
-                    data: temperatures,
-                    borderColor: '#ff6b6b',
-                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 2,
-                    pointHoverRadius: 6,
-                    yAxisID: 'y-temp',
-                },
-                {
-                    label: '濕度 (%)',
-                    data: humidities,
-                    borderColor: '#4ecdc4',
-                    backgroundColor: 'rgba(78, 205, 196, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 2,
-                    pointHoverRadius: 6,
-                    yAxisID: 'y-humidity',
-                }
-            ]
+            datasets: datasets
         },
         options: {
             responsive: true,
@@ -325,7 +347,12 @@ function renderChart(data) {
                                 label += ': ';
                             }
                             if (context.parsed.y !== null) {
-                                label += context.parsed.y.toFixed(1);
+                                // PPM 不需要小數點
+                                if (context.dataset.yAxisID === 'y-air') {
+                                    label += Math.round(context.parsed.y);
+                                } else {
+                                    label += context.parsed.y.toFixed(1);
+                                }
                             }
                             return label;
                         },
@@ -389,6 +416,23 @@ function renderChart(data) {
                     },
                     min: 0,
                     max: 100,
+                },
+                'y-air': {
+                    type: 'linear',
+                    position: 'right',
+                    title: {
+                        display: hasAirQuality,
+                        text: 'PPM',
+                        color: '#7ed957',
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                    ticks: {
+                        color: '#7ed957',
+                    },
+                    min: 0,
+                    display: hasAirQuality,
                 }
             }
         }
