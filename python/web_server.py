@@ -221,10 +221,18 @@ def api_clear_hard():
 def api_push_data():
     """接收來自本地的數據推送 (Cloud Receiver)"""
     # 驗證 API Key (簡單版)
-    auth_header = request.headers.get('Authorization')
-    expected_key = f"Bearer {os.getenv('CLOUD_API_KEY', 'default_insecure_key')}"
+    # 驗證 API Key (簡單版)
+    auth_header = request.headers.get('Authorization', '')
     
-    if auth_header != expected_key:
+    # 取得 Server 端 Key 並去除空白
+    server_key = os.getenv('CLOUD_API_KEY', 'default_insecure_key').strip()
+    expected_key = f"Bearer {server_key}"
+    
+    if auth_header.strip() != expected_key:
+        # 詳細記錄錯誤以便除錯 Render Logs
+        print(f"⚠️ [AUTH FAILED] 收到: '{auth_header}' (長度 {len(auth_header)})")
+        print(f"                  預期: 'Bearer {server_key[:3]}...' (長度 {len(expected_key)})")
+        
         return jsonify({
             'success': False,
             'error': 'Unauthorized'

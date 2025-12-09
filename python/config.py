@@ -65,6 +65,9 @@ WEBHOOK_INTERVAL = 60
 # ========== 模擬模式設定 ==========
 # 當沒有 Arduino 時，使用模擬數據
 
+# 是否啟用模擬模式 (預設 false)
+SIMULATE_MODE = os.getenv("SIMULATE_MODE", "false").lower() == "true"
+
 # 模擬器基礎溫度（攝氏）
 SIMULATOR_BASE_TEMP = 25.0
 

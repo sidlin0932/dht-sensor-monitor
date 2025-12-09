@@ -21,7 +21,7 @@ from datetime import datetime
 from config import (
     SERIAL_PORT, WEBHOOK_INTERVAL,
     DISCORD_WEBHOOK_URL, DISCORD_BOT_TOKEN,
-    CLOUD_SYNC_ENABLED
+    CLOUD_SYNC_ENABLED, SIMULATE_MODE
 )
 import database as db
 from serial_reader import ArduinoReader, find_arduino_port
@@ -275,8 +275,11 @@ def main():
     parser.add_argument('--simulate', '-s', action='store_true', help='使用模擬數據')
     args = parser.parse_args()
     
+    # 優先權：命令列參數 > 環境變數
+    is_simulating = args.simulate or SIMULATE_MODE
+    
     # 建立監測實例
-    monitor = DHT_Monitor(port=args.port if not args.simulate else None)
+    monitor = DHT_Monitor(port=args.port if not is_simulating else None)
     
     # 設定信號處理
     def signal_handler(sig, frame):

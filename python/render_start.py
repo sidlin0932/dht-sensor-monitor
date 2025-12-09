@@ -30,9 +30,13 @@ print(f"🎮 模擬模式: {os.environ['SIMULATE_MODE']}")
 print("=" * 60)
 
 # 檢查啟動模式
-if '--web-only' in sys.argv:
+# 如果是 --web-only 或者 SIMULATE_MODE=false，則不產生模擬數據
+simulate_mode = os.environ.get('SIMULATE_MODE', 'true').lower() == 'true'
+
+if '--web-only' in sys.argv or not simulate_mode:
     # 僅啟動 Web 伺服器（不產生數據）
-    print("📊 模式：僅 Web 伺服器（等待外部數據推送）\n")
+    mode_str = "僅 Web 伺服器" if '--web-only' in sys.argv else "Cloud Receiver 模式 (SIMULATE_MODE=false)"
+    print(f"📊 模式：{mode_str}（等待外部數據推送）\n")
     from web_server import run_server
     run_server(
         host=os.environ['WEB_HOST'],
