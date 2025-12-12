@@ -6,7 +6,10 @@
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+# 定義台北時區 (UTC+8)
+TAIPEI_TZ = timezone(timedelta(hours=8))
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import psycopg2
@@ -78,7 +81,7 @@ def insert_reading(temperature, humidity, heat_index=None):
         INSERT INTO sensor_readings (temperature, humidity, heat_index, recorded_at)
         VALUES (%s, %s, %s, %s)
         RETURNING id
-    ''', (temperature, humidity, heat_index, datetime.utcnow()))
+    ''', (temperature, humidity, heat_index, datetime.now(TAIPEI_TZ)))
     
     record_id = cur.fetchone()['id']
     conn.commit()
@@ -111,7 +114,7 @@ def get_readings_by_hours(hours=24):
     conn = get_db_connection()
     cur = conn.cursor()
     
-    since = datetime.utcnow() - timedelta(hours=hours)
+    since = datetime.now(TAIPEI_TZ) - timedelta(hours=hours)
     
     cur.execute('''
         SELECT * FROM sensor_readings 
@@ -131,7 +134,7 @@ def get_statistics(hours=24):
     conn = get_db_connection()
     cur = conn.cursor()
     
-    since = datetime.utcnow() - timedelta(hours=hours)
+    since = datetime.now(TAIPEI_TZ) - timedelta(hours=hours)
     
     cur.execute('''
         SELECT 
@@ -209,7 +212,7 @@ def send_discord_notification(temperature, humidity, heat_index=None):
             {"name": "📊 狀態", "value": status, "inline": True}
         ],
         "footer": {"text": "DHT 感測器監測系統 (雲端)"},
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(TAIPEI_TZ).isoformat()
     }
     
     if heat_index:
@@ -268,7 +271,7 @@ def api_push():
         'temperature': temperature,
         'humidity': humidity,
         'heat_index': heat_index,
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.now(TAIPEI_TZ).isoformat()
     }
     
     # 發送 Discord 通知（如果有設定）
@@ -350,7 +353,7 @@ def api_status():
     
     status_data = {
         'total_readings': total_count,
-        'server_time': datetime.utcnow().isoformat(),
+        'server_time': datetime.now(TAIPEI_TZ).isoformat(),
         'version': '0.1.0',
         'mode': 'cloud'
     }
@@ -360,7 +363,7 @@ def api_status():
         if isinstance(recorded_at, str):
             recorded_at = datetime.fromisoformat(recorded_at)
         
-        time_diff = datetime.utcnow() - recorded_at
+        time_diff = datetime.now(TAIPEI_TZ).replace(tzinfo=None) - recorded_at
         minutes_ago = time_diff.total_seconds() / 60
         
         status_data['last_reading'] = {
@@ -385,7 +388,7 @@ def api_status():
 @app.route('/api/health')
 def api_health():
     """健康檢查（Render 使用）"""
-    return jsonify({'status': 'ok', 'timestamp': datetime.utcnow().isoformat()})
+    return jsonify({'status': 'ok', 'timestamp': datetime.now(TAIPEI_TZ).isoformat()})
 
 
 # ========== 啟動 ==========
