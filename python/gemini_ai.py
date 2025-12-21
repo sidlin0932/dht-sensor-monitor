@@ -35,7 +35,7 @@ class GeminiAI:
         
         try:
             genai.configure(api_key=GEMINI_API_KEY)
-            self.model = genai.GenerativeModel('gemini-2.5-flash-preview-05-20')
+            self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
             self.enabled = True
             print("[AI] Gemini AI initialized successfully")
         except Exception as e:
