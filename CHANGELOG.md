@@ -11,6 +11,13 @@
 
 ---
 
+## [0.5.8] - 2025-12-22
+### Changed
+- **Doc**: 將 Issue 編號與 GitHub Issues 同步 (#005 - #037)
+- **Doc**: 修正 `ISSUES.md` 編號錯誤 (#038 → #034) 並統一編號格式
+
+---
+
 ## [0.5.7] - 2025-12-22
 ### Added
 - **Doc**: 專案歷史重建 (Project History Reconstruction) (ABP-019)

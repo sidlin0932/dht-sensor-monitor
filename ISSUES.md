@@ -2,43 +2,43 @@
 
 ## 🔢 編號紀錄（Quick Reference）
 
-**下一個可用編號：#034**
+**下一個可用編號：#038**
 
 | 編號 | 類型 | 標題 | 狀態 | 負責人 | 影響版本 | 建立日期 |
 |------|------|------|------|--------|----------|----------|
-| `#001` | Won't Fix | 藍牙模組 (HC-05/06) 連線不穩 | ❌ | @Sid | v0.1.0 | 2025-11-20 |
-| `#002` | Performance | Serial 重連機制內的 2秒延遲寫死 | 🔴 | @Sid | v0.1.0 | 2025-11-20 |
-| `#003` | Config | Git: `.gitignore` 忽略 `data/` 導致 Crash | 🔴 | @Sid | v0.1.0 | 2025-11-20 |
-| `#004` | Docs | Doc: `README.md` Link Rot (連結失效風險) | 🔴 | @Sid | v0.1.0 | 2025-11-20 |
-| `#005` | Bug | Windows cp950 編碼錯誤 (emoji crash) | 🟢 | @Sid | v0.2.0 | 2025-11-25 |
-| `#006` | Build | Render 無法找到 `requirements.txt` 路徑 | 🟢 | @Sid | v0.4.0 | 2025-12-05 |
-| `#007` | Deploy | 應用程式端口綁定失敗 (Port Binding) | 🟢 | @Sid | v0.4.0 | 2025-12-05 |
-| `#008` | Security | Security: `web_server.py` logs secrets to console | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
-| `#009` | Security | Security: Default insecure key used if API Key missing | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
-| `#010` | Refactor | Code Smell: Bare `except:` in `cloud_sync.py` | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
-| `#011` | Security | Security: CORS enabled for all origins (`*`) | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
-| `#012` | Bug | UX: Simulator prints wrong URL in Cloud mode | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
-| `#013` | Bug | Discord: Bot silent crash on startup | 🟢 | @Sid | v0.4.1 | 2025-12-06 |
-| `#014` | Security | Security: `fix_encoding.py` 含硬編碼絕對路徑 | 🔴 | @Sid | v0.5.0 | 2025-12-09 |
-| `#015` | Cleanup | Maintenance: `fix_encoding.py` 應被移除 | 🔴 | @Sid | v0.5.0 | 2025-12-09 |
-| `#016` | Bug | Simulator fails to authenticate with Cloud Server | 🟢 | @Sid | v0.5.3 | 2025-12-09 |
-| `#017` | Bug | Render: `data/` 資料夾不存在導致崩潰 | 🟢 | @Sid | v0.5.5 | 2025-12-09 |
-| `#018` | Bug | Arduino Compiling Error: `currentQuality` 重複宣告 | 🟢 | @Sid | v0.5.4 | 2025-12-10 |
-| `#019` | Bug | `.env` file corrupted by Windows BOM | 🟢 | @Sid | v0.5.5 | 2025-12-10 |
-| `#020` | Bug | Web: Chart crash on empty history | 🟢 | @Sid | v0.5.4 | 2025-12-10 |
-| `#021` | Bug | UI: Timezone mismatch (UTC vs Local) | 🟡 | @Sid | v0.4.0 | 2025-12-12 |
-| `#022` | Cancelled | ESP32 WiFi 獨立運作版本開發困難 | ❌ | @Sid | v0.4.0 | 2025-12-15 |
-| `#023` | Bug | AI 模型 `gemini-1.5` 停止服務 (Model Not Found) | 🟢 | @Sid | v0.5.5 | 2025-12-21 |
-| `#024` | Bug | Reliability: Race Condition in `web_server.py` | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
-| `#025` | Refactor | Reliability: `main.py` 使用阻塞式 `time.sleep(1)` | 🔴 | @Sid | v0.2.0 | 2025-12-22 |
-| `#026` | Critical | Database: `sensor_data.json` 高併發壞檔風險 | 🔴 | @Sid | v0.2.0 | 2025-12-22 |
-| `#027` | i18n | UI: `script.js` 寫死中文提示 (Hardcoded Strings) | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
-| `#028` | Security | Security: `/api/clear/hard` 缺乏權限驗證 | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
-| `#029` | Docs | Doc: `docs/setup.md` Python 版本不一致 | 🔴 | @Sid | v0.5.0 | 2025-12-22 |
-| `#030` | Style | UI: `index.html` Meta Title 寫死無法客製 | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
-| `#031` | Refactor | Logic: `main.py` 與 `simulator.py` 邏輯重複 | 🔴 | @Sid | v0.1.0 | 2025-12-22 |
-| `#032` | Style | CSS: 用了 Google Fonts (GDPR/Offline issue) | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
-| `#033` | Style | CSS: Hardcoded Hex colors instead of variables | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
+| `#005` | Won't Fix | 藍牙模組 (HC-05/06) 連線不穩 | ❌ | @Sid | v0.1.0 | 2025-11-20 |
+| `#006` | Performance | Serial 重連機制內的 2秒延遲寫死 | 🔴 | @Sid | v0.1.0 | 2025-11-20 |
+| `#007` | Config | Git: `.gitignore` 忽略 `data/` 導致 Crash | 🔴 | @Sid | v0.1.0 | 2025-11-20 |
+| `#008` | Docs | Doc: `README.md` Link Rot (連結失效風險) | 🔴 | @Sid | v0.1.0 | 2025-11-20 |
+| `#009` | Bug | Windows cp950 編碼錯誤 (emoji crash) | 🟢 | @Sid | v0.2.0 | 2025-11-25 |
+| `#010` | Build | Render 無法找到 `requirements.txt` 路徑 | 🟢 | @Sid | v0.4.0 | 2025-12-05 |
+| `#011` | Deploy | 應用程式端口綁定失敗 (Port Binding) | 🟢 | @Sid | v0.4.0 | 2025-12-05 |
+| `#012` | Security | Security: `web_server.py` logs secrets to console | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
+| `#013` | Security | Security: Default insecure key used if API Key missing | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
+| `#014` | Refactor | Code Smell: Bare `except:` in `cloud_sync.py` | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
+| `#015` | Security | Security: CORS enabled for all origins (`*`) | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
+| `#016` | Bug | UX: Simulator prints wrong URL in Cloud mode | 🔴 | @Sid | v0.4.0 | 2025-12-05 |
+| `#017` | Bug | Discord: Bot silent crash on startup | 🟢 | @Sid | v0.4.1 | 2025-12-06 |
+| `#018` | Security | Security: `fix_encoding.py` 含硬編碼絕對路徑 | 🔴 | @Sid | v0.5.0 | 2025-12-09 |
+| `#019` | Cleanup | Maintenance: `fix_encoding.py` 應被移除 | 🔴 | @Sid | v0.5.0 | 2025-12-09 |
+| `#020` | Bug | Simulator fails to authenticate with Cloud Server | 🟢 | @Sid | v0.5.3 | 2025-12-09 |
+| `#021` | Bug | Render: `data/` 資料夾不存在導致崩潰 | 🟢 | @Sid | v0.5.5 | 2025-12-09 |
+| `#022` | Bug | Arduino Compiling Error: `currentQuality` 重複宣告 | 🟢 | @Sid | v0.5.4 | 2025-12-10 |
+| `#023` | Bug | `.env` file corrupted by Windows BOM | 🟢 | @Sid | v0.5.5 | 2025-12-10 |
+| `#024` | Bug | Web: Chart crash on empty history | 🟢 | @Sid | v0.5.4 | 2025-12-10 |
+| `#025` | Bug | UI: Timezone mismatch (UTC vs Local) | 🟡 | @Sid | v0.4.0 | 2025-12-12 |
+| `#026` | Cancelled | ESP32 WiFi 獨立運作版本開發困難 | ❌ | @Sid | v0.4.0 | 2025-12-15 |
+| `#027` | Bug | AI 模型 `gemini-1.5` 停止服務 (Model Not Found) | 🟢 | @Sid | v0.5.5 | 2025-12-21 |
+| `#028` | Bug | Reliability: Race Condition in `web_server.py` | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
+| `#029` | Refactor | Reliability: `main.py` 使用阻塞式 `time.sleep(1)` | 🔴 | @Sid | v0.2.0 | 2025-12-22 |
+| `#030` | Critical | Database: `sensor_data.json` 高併發壞檔風險 | 🔴 | @Sid | v0.2.0 | 2025-12-22 |
+| `#031` | i18n | UI: `script.js` 寫死中文提示 (Hardcoded Strings) | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
+| `#032` | Security | Security: `/api/clear/hard` 缺乏權限驗證 | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
+| `#033` | Docs | Doc: `docs/setup.md` Python 版本不一致 | 🔴 | @Sid | v0.5.0 | 2025-12-22 |
+| `#034` | Style | UI: `index.html` Meta Title 寫死無法客製 | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
+| `#035` | Refactor | Logic: `main.py` 與 `simulator.py` 邏輯重複 | 🔴 | @Sid | v0.1.0 | 2025-12-22 |
+| `#036` | Style | CSS: 用了 Google Fonts (GDPR/Offline issue) | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
+| `#037` | Style | CSS: Hardcoded Hex colors instead of variables | 🔴 | @Sid | v0.3.0 | 2025-12-22 |
 
 ---
 
@@ -56,7 +56,7 @@
 
 ## 🔴 Open（待處理）
 
-### #002 Performance: Serial 重連機制內的 2秒延遲寫死
+### #006 Performance: Serial 重連機制內的 2秒延遲寫死
 
 | 欄位 | 值 |
 |------|-----|
@@ -74,7 +74,7 @@
 
 ---
 
-### #003 Git: `.gitignore` 忽略 `data/` 導致 Crash
+### #007 Git: `.gitignore` 忽略 `data/` 導致 Crash
 
 | 欄位 | 值 |
 |------|-----|
@@ -92,7 +92,7 @@
 
 ---
 
-### #004 Doc: `README.md` Link Rot (連結失效風險)
+### #008 Doc: `README.md` Link Rot (連結失效風險)
 
 | 欄位 | 值 |
 |------|-----|
@@ -110,7 +110,7 @@
 
 ---
 
-### #008 Security: `web_server.py` logs secrets to console
+### #012 Security: `web_server.py` logs secrets to console
 
 | 欄位 | 值 |
 |------|-----|
@@ -128,7 +128,7 @@
 
 ---
 
-### #009 Security: Default insecure key used if API Key missing
+### #013 Security: Default insecure key used if API Key missing
 
 | 欄位 | 值 |
 |------|-----|
@@ -146,7 +146,7 @@
 
 ---
 
-### #010 Code Smell: Bare `except:` in `cloud_sync.py`
+### #014 Code Smell: Bare `except:` in `cloud_sync.py`
 
 | 欄位 | 值 |
 |------|-----|
@@ -164,7 +164,7 @@
 
 ---
 
-### #011 Security: CORS enabled for all origins (`*`)
+### #015 Security: CORS enabled for all origins (`*`)
 
 | 欄位 | 值 |
 |------|-----|
@@ -182,7 +182,7 @@
 
 ---
 
-### #012 UX: Simulator prints wrong URL in Cloud mode
+### #016 UX: Simulator prints wrong URL in Cloud mode
 
 | 欄位 | 值 |
 |------|-----|
@@ -200,7 +200,7 @@
 
 ---
 
-### #014 Security: `fix_encoding.py` 含硬編碼絕對路徑
+### #018 Security: `fix_encoding.py` 含硬編碼絕對路徑
 
 | 欄位 | 值 |
 |------|-----|
@@ -218,7 +218,7 @@
 
 ---
 
-### #015 Maintenance: `fix_encoding.py` 應被移除
+### #019 Maintenance: `fix_encoding.py` 應被移除
 
 | 欄位 | 值 |
 |------|-----|
@@ -238,7 +238,7 @@
 
 ## 🟢 Closed（已完成）
 
-### #013 Discord: Bot silent crash on startup
+### #017 Discord: Bot silent crash on startup
 
 | 欄位 | 值 |
 |------|-----|
@@ -255,7 +255,7 @@ Discord Bot 啟動失敗時只會印出單行錯誤，缺乏 Stack Trace，且�
 
 ---
 
-### #020 Web: Chart crash on empty history
+### #024 Web: Chart crash on empty history
 
 | 欄位 | 值 |
 |------|-----|
@@ -272,7 +272,7 @@ Discord Bot 啟動失敗時只會印出單行錯誤，缺乏 Stack Trace，且�
 
 ---
 
-### #016 Simulator fails to authenticate with Cloud Server
+### #020 Simulator fails to authenticate with Cloud Server
 
 | 欄位 | 值 |
 |------|-----|
@@ -288,7 +288,7 @@ Commit `0f455ef` 顯示 `main.py` 中的模擬器未正確發送 Auth Header，�
 
 ---
 
-### #017 Render: `data/` 資料夾不存在導致崩潰
+### #021 Render: `data/` 資料夾不存在導致崩潰
 
 | 欄位 | 值 |
 |------|-----|
@@ -305,7 +305,7 @@ Commit `0f455ef` 顯示 `main.py` 中的模擬器未正確發送 Auth Header，�
 
 ---
 
-### #023 AI 模型 `gemini-1.5` 停止服務 (Model Not Found)
+### #027 AI 模型 `gemini-1.5` 停止服務 (Model Not Found)
 
 | 欄位 | 值 |
 |------|-----|
@@ -322,7 +322,7 @@ Commit `0f455ef` 顯示 `main.py` 中的模擬器未正確發送 Auth Header，�
 
 ---
 
-### #024 Reliability: Race Condition in `web_server.py`
+### #028 Reliability: Race Condition in `web_server.py`
 
 | 欄位 | 值 |
 |------|-----|
@@ -340,7 +340,7 @@ Commit `0f455ef` 顯示 `main.py` 中的模擬器未正確發送 Auth Header，�
 
 ---
 
-### #025 Reliability: `main.py` 使用阻塞式 `time.sleep(1)`
+### #029 Reliability: `main.py` 使用阻塞式 `time.sleep(1)`
 
 | 欄位 | 值 |
 |------|-----|
@@ -358,7 +358,7 @@ Commit `0f455ef` 顯示 `main.py` 中的模擬器未正確發送 Auth Header，�
 
 ---
 
-### #026 Database: `sensor_data.json` 高併發壞檔風險
+### #030 Database: `sensor_data.json` 高併發壞檔風險
 
 | 欄位 | 值 |
 |------|-----|
@@ -376,7 +376,7 @@ Commit `0f455ef` 顯示 `main.py` 中的模擬器未正確發送 Auth Header，�
 
 ---
 
-### #027 UI: `script.js` 寫死中文提示 (Hardcoded Strings)
+### #031 UI: `script.js` 寫死中文提示 (Hardcoded Strings)
 
 | 欄位 | 值 |
 |------|-----|
@@ -394,7 +394,7 @@ JS 內訊息寫死中文。
 
 ---
 
-### #028 Security: `/api/clear/hard` 缺乏權限驗證
+### #032 Security: `/api/clear/hard` 缺乏權限驗證
 
 | 欄位 | 值 |
 |------|-----|
@@ -412,7 +412,7 @@ Admin Token Header。
 
 ---
 
-### #029 Doc: `docs/setup.md` Python 版本不一致
+### #033 Doc: `docs/setup.md` Python 版本不一致
 
 | 欄位 | 值 |
 |------|-----|
@@ -430,7 +430,7 @@ Admin Token Header。
 
 ---
 
-### #030 UI: `index.html` Meta Title 寫死無法客製
+### #034 UI: `index.html` Meta Title 寫死無法客製
 
 | 欄位 | 值 |
 |------|-----|
@@ -448,7 +448,7 @@ Backend Template Rendering。
 
 ---
 
-### #031 Logic: `main.py` 與 `simulator.py` 邏輯重複
+### #035 Logic: `main.py` 與 `simulator.py` 邏輯重複
 
 | 欄位 | 值 |
 |------|-----|
@@ -466,7 +466,7 @@ Unified Simulator Class。
 
 ---
 
-### #032 CSS: 用了 Google Fonts (GDPR/Offline issue)
+### #036 CSS: 用了 Google Fonts (GDPR/Offline issue)
 
 | 欄位 | 值 |
 |------|-----|
@@ -484,7 +484,7 @@ Unified Simulator Class。
 
 ---
 
-### #033 CSS: Hardcoded Hex colors instead of variables
+### #037 CSS: Hardcoded Hex colors instead of variables
 
 | 欄位 | 值 |
 |------|-----|
@@ -504,7 +504,7 @@ CSS Variables。
 
 ## 🟡 In Progress（進行中）
 
-### #021 UI: Timezone mismatch (UTC vs Local)
+### #025 UI: Timezone mismatch (UTC vs Local)
 
 | 欄位 | 值 |
 |------|-----|
@@ -525,7 +525,7 @@ Web 介面直接顯示後端傳來的時間字串。
 
 ## 🟢 Closed（已完成）
 
-### #005 Windows cp950 編碼錯誤 (emoji crash)
+### #009 Windows cp950 編碼錯誤 (emoji crash)
 
 | 欄位 | 值 |
 |------|-----|
@@ -540,7 +540,7 @@ Web 介面直接顯示後端傳來的時間字串。
 
 ---
 
-### #006 Render 無法找到 `requirements.txt` 路徑
+### #010 Render 無法找到 `requirements.txt` 路徑
 
 | 欄位 | 值 |
 |------|-----|
@@ -555,7 +555,7 @@ Web 介面直接顯示後端傳來的時間字串。
 
 ---
 
-### #007 應用程式端口綁定失敗 (Port Binding)
+### #011 應用程式端口綁定失敗 (Port Binding)
 
 | 欄位 | 值 |
 |------|-----|
@@ -570,7 +570,7 @@ Web 介面直接顯示後端傳來的時間字串。
 
 ---
 
-### #018 Arduino Compiling Error: `currentQuality` 重複宣告
+### #022 Arduino Compiling Error: `currentQuality` 重複宣告
 
 | 欄位 | 值 |
 |------|-----|
@@ -585,7 +585,7 @@ Web 介面直接顯示後端傳來的時間字串。
 
 ---
 
-### #019 `.env` file corrupted by Windows BOM
+### #023 `.env` file corrupted by Windows BOM
 
 | 欄位 | 值 |
 |------|-----|
@@ -602,7 +602,7 @@ Web 介面直接顯示後端傳來的時間字串。
 
 ## ⚫ Wontfix / Duplicate（不處理）
 
-### #001 藍牙模組 (HC-05/06) 連線不穩
+### #005 藍牙模組 (HC-05/06) 連線不穩
 
 | 欄位 | 值 |
 |------|-----|
@@ -616,7 +616,7 @@ Web 介面直接顯示後端傳來的時間字串。
 
 ---
 
-### #022 ESP32 WiFi 獨立運作版本開發困難
+### #026 ESP32 WiFi 獨立運作版本開發困難
 
 | 欄位 | 值 |
 |------|-----|

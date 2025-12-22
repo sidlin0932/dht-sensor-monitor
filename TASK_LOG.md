@@ -40,15 +40,15 @@
 | `ABP-014` | Web | PPM 歷史趨勢圖表 | Done | Medium | @Sid | v0.5.0, v0.5.1 | 圖表新增第三條 PPM 曲線 (Commit `36d374f`) |
 | `ABP-015` | Discord | 靜音模式 (`/silent`) | Done | Low | @Sid | v0.5.2 | Arduino 新增 `SILENT_ON/OFF` 指令 (Commit `f01626a`) |
 | `ABP-016` | Sync | 雲端同步功能 (Local to Cloud) | Done | High | @Sid | v0.5.3 | `/api/push` endpoint + PPM sync (Commit `3400171`) |
-| `ABP-017` | Fix | Arduino 編譯變數重複宣告 | Done | Critical | @Sid | v0.5.4 | Fixes #018, 移除 `currentQuality` 重複宣告 (Commit `8c5fa42`) |
-| `ABP-018` | Fix | Windows UTF-8 BOM 環境變數問題 | Done | Critical | @Sid | v0.5.5 | Fixes #019, 改用 `utf-8-sig` 讀取 (Commit `f4dd9de`) |
+| `ABP-017` | Fix | Arduino 編譯變數重複宣告 | Done | Critical | @Sid | v0.5.4 | Fixes #022, 移除 `currentQuality` 重複宣告 (Commit `8c5fa42`) |
+| `ABP-018` | Fix | Windows UTF-8 BOM 環境變數問題 | Done | Critical | @Sid | v0.5.5 | Fixes #023, 改用 `utf-8-sig` 讀取 (Commit `f4dd9de`) |
 | `ABP-019` | Task | 還原專案歷史與文件補全 | WIP | Medium | @Bot | v0.6.0 | 本次審計任務 |
-| `ABP-020` | Fix | Windows cp950 編碼錯誤 (emoji) | Done | Medium | @Sid | v0.4.0 | Fixes #005, 移除 emoji 輸出 (Commit `bc29f81`) |
-| `ABP-021` | Fix | Render Port Binding 失敗 | Done | High | @Sid | v0.4.0 | Fixes #006/#007, 新增 `os.getenv("PORT")` (Commit `abd5633`) |
-| `ABP-022` | Fix | Discord Bot 啟動靜默崩潰 | Done | Medium | @Sid | v0.4.1 | Fixes #013, 加入 `traceback.print_exc()` (Commit `5519623`) |
-| `ABP-023` | Fix | Simulator 雲端認證失敗 | Done | Critical | @Sid | v0.5.3 | Fixes #016, 修正 Auth Header 格式 (Commit `0f455ef`) |
-| `ABP-024` | Fix | 空歷史資料時圖表崩潰 | Done | Low | @Sid | v0.5.5 | Fixes #020, 加入 `if (data.history)` 檢查 (Commit `f4dd9de`) |
-| `ABP-025` | Fix | Render 資料夾不存在崩潰 | Done | Medium | @Sid | v0.5.5 | Fixes #017, 確保 `data/` 目錄存在 (Commit `304b548`) |
-| `ABP-026` | Fix | AI 模型過期 (gemini-1.5) | Done | Medium | @Sid | v0.5.6 | Fixes #023, 更新為 `gemini-2.5-flash-lite` (Commit `dcd6bdb`) |
-| `ABP-027` | Fix | 雲端時區顯示錯誤 | Done | Medium | @Sid | v0.5.5+ | Partial fix #021, Server-side pytz 轉為台北時間 (Commit `6a659c9`) |
+| `ABP-020` | Fix | Windows cp950 編碼錯誤 (emoji) | Done | Medium | @Sid | v0.4.0 | Fixes #009, 移除 emoji 輸出 (Commit `bc29f81`) |
+| `ABP-021` | Fix | Render Port Binding 失敗 | Done | High | @Sid | v0.4.0 | Fixes #010/#011, 新增 `os.getenv("PORT")` (Commit `abd5633`) |
+| `ABP-022` | Fix | Discord Bot 啟動靜默崩潰 | Done | Medium | @Sid | v0.4.1 | Fixes #017, 加入 `traceback.print_exc()` (Commit `5519623`) |
+| `ABP-023` | Fix | Simulator 雲端認證失敗 | Done | Critical | @Sid | v0.5.3 | Fixes #020, 修正 Auth Header 格式 (Commit `0f455ef`) |
+| `ABP-024` | Fix | 空歷史資料時圖表崩潰 | Done | Low | @Sid | v0.5.5 | Fixes #024, 加入 `if (data.history)` 檢查 (Commit `f4dd9de`) |
+| `ABP-025` | Fix | Render 資料夾不存在崩潰 | Done | Medium | @Sid | v0.5.5 | Fixes #021, 確保 `data/` 目錄存在 (Commit `304b548`) |
+| `ABP-026` | Fix | AI 模型過期 (gemini-1.5) | Done | Medium | @Sid | v0.5.6 | Fixes #027, 更新為 `gemini-2.5-flash-lite` (Commit `dcd6bdb`) |
+| `ABP-027` | Fix | 雲端時區顯示錯誤 | Done | Medium | @Sid | v0.5.5+ | Partial fix #025, Server-side pytz 轉為台北時間 (Commit `6a659c9`) |
 | `ABP-028` | Refactor | 資料庫改用 JSON/CSV | Done | Medium | @Sid | v0.1.1 | 取代 SQLite，改為人類可讀格式 (Commit `7b76b64`) |
